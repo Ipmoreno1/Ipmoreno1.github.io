@@ -1,6 +1,6 @@
 // world.js : the two walkable areas (Main Campus and the Sun Bowl side), built from tiles, buildings and props.
-import * as A from "./art.js";
-import { BUILDINGS, paintBuilding } from "./buildings.js";
+import * as A from "./art.js?v=15";
+import { BUILDINGS, paintBuilding } from "./buildings.js?v=15";
 const T = A.T;
 export const TILE = { ground: 0, lawn: 1, path: 2, plaza: 3, road: 4, walk: 5, turf: 6, water: 7, mtn: 8, dg: 9, park: 10 };
 const SOFT = [TILE.ground, TILE.lawn, TILE.path, TILE.dg];
@@ -139,7 +139,7 @@ export function buildMain(art) {
   const ulc = a.building(BUILDINGS.ulc(), 36, 45, null, "Undergraduate Learning Center");
   const ed = a.building(BUILDINGS.education(), 2, 45, null, "Education");
   const en = a.building(BUILDINGS.engineering(), 70, 45, "engineering", "Engineering Sciences Complex", { signUp: 30 });
-  const bx = a.building(BUILDINGS.geo(), 56, 45, null, "Physical Science");
+  const bx = a.building(BUILDINGS.physci(), 56, 45, null, "Physical Science");
   // door spurs to the nearest paseo
   for (const b of [mus, ps, om, ke, qu, cc, bell]) a.vpath(b.doorTx - 1, b.by, 19, 2);
   for (const b of [un, lh, geo, adm]) a.vpath(b.doorTx - 1, b.by, 38, 2);
@@ -186,7 +186,9 @@ export function buildMain(art) {
   a.bus = { x: 52 * T, y: 50 * T + 6, r: 34, obj: bus, label: "Sun Metro stop", signX: 55.5 * T, signY: 48 * T + 2 };
   a.spawn = { x: 52.5 * T, y: 28.4 * T };
   a.npcs = [
-    { id: "pete", x: 57 * T, y: 27 * T, home: [57, 27], wander: 2 },
+    { id: "miner", x: 57 * T, y: 27 * T, home: [57, 27], wander: 2 },
+    { id: "jack", x: 84 * T, y: 21 * T, home: [84, 21], wander: 2 },
+    { id: "lizard", x: 10 * T, y: 21 * T, home: [10, 21], wander: 1 },
     { id: "s0", route: [[17, 20], [17, 44], [35, 44], [35, 20]] },
     { id: "s1", route: [[69, 20], [98, 20], [98, 39], [69, 39]] },
     { id: "s2", x: 29 * T, y: 39 * T, home: [29, 39], wander: 4 },
@@ -217,7 +219,7 @@ export function buildAthletics(art) {
   const br = a.building(BUILDINGS.brumbelow(), 4, 40 + Y, null, "Brumbelow Building");
   const du = a.building(BUILDINGS.durham(), 74, 40 + Y, null, "Larry K. Durham Center");
   const kf = a.building(paintTrack(), 34, 19 + Y, null, "Kidd Field", { kind: "stadium", signUp: 14 });
-  const grg = a.building(paintBuilding({ w: 160, seed: 63, blocks: [{ x: 0, w: 160, floors: 3, fh: 13, wall: "#d9c39c", roof: "flat", winW: 12, winGap: 16, bandH: 6 }], doors: [{ x: 40, w: 16, style: "glass" }] }), 74, 19 + Y, null, "Glory Road Transfer Center");
+  const grg = a.building(BUILDINGS.glory(), 74, 19 + Y, null, "Glory Road Transfer Center");
   for (const b of [sto, arn, mg, fs, grg]) a.vpath(b.doorTx - 1, b.by, 27 + Y, 2);
   for (const b of [fit, br, du]) a.vpath(b.doorTx - 1, b.by, 41 + Y, 2);
   // Mining Minds plaza
@@ -247,6 +249,7 @@ export function buildAthletics(art) {
   a.road = [8, 13];
   a.spawn = { x: 32 * T + 8, y: 15 * T + 4 };
   a.npcs = [
+    { id: "coyote", x: 20 * T, y: (28 + Y) * T, home: [20, 28 + Y], wander: 2 },
     { id: "s4", route: [[32, 28 + Y], [32, 42 + Y], [59, 42 + Y], [59, 28 + Y]] },
     { id: "s5", x: 66 * T, y: (28 + Y) * T, home: [66, 28 + Y], wander: 3 },
     { id: "s6", x: 50 * T, y: (37 + Y) * T, home: [50, 37 + Y], wander: 2 },

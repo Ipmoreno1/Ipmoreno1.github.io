@@ -1,5 +1,5 @@
 // ui.js : HUD, signs, toasts and every panel (Dig Log, project detail, landmarks, map, MinerDex, contact, help, dialogue).
-import { PROFILE, DEX, ABOUT, EDUCATION, PROJECTS, EXPERIENCE_IDS, SKILLS, INTERESTS, LANDMARKS, CAMPUS_FACTS, PETE_TALK, SITE } from "./data.js";
+import { PROFILE, DEX, ABOUT, EDUCATION, PROJECTS, EXPERIENCE_IDS, SKILLS, INTERESTS, LANDMARKS, CAMPUS_FACTS, MASCOTS, PET_TALK, SITE } from "./data.js?v=15";
 
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -21,10 +21,10 @@ const AREA_NAME = { main: "Main Campus", athletics: "Sun Bowl & Athletics" };
 // sprites (whole-number scale, smoothing off), then the in-code character portrait.
 const HI = (window.devicePixelRatio || 1) >= 1.5;
 const img = (src) => { const i = new Image(); i.decoding = "async"; i.src = src; return i; };
-const AV_HD = img(HI ? "assets/isaac-portrait-hd@2x.png" : "assets/isaac-portrait-hd.png");
-const AV_HUD = img(HI ? "assets/isaac-portrait-hud@2x.png" : "assets/isaac-portrait-hud.png");
-const AVATAR = img("assets/isaac-portrait.png");
-const AVATAR32 = img("assets/isaac-portrait-32.png");
+const AV_HD = img(HI ? "assets/isaac-portrait-hd@2x.png?v=15" : "assets/isaac-portrait-hd.png?v=15");
+const AV_HUD = img(HI ? "assets/isaac-portrait-hud@2x.png?v=15" : "assets/isaac-portrait-hud.png?v=15");
+const AVATAR = img("assets/isaac-portrait.png?v=15");
+const AVATAR32 = img("assets/isaac-portrait-32.png?v=15");
 const AV_BG = "#d1e3d3"; // the portrait's mint background, used to pad the frame
 function drawPortrait(c) {
   if (!c) return;
@@ -137,7 +137,15 @@ function onBodyClick(e) {
   else if (a === "close") UI.close();
   else if (a === "chip") { document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c === b))); renderLogList(); }
   else if (a === "copy") { const done = () => UI.toast("Email copied: " + PROFILE.email); if (navigator.clipboard) navigator.clipboard.writeText(PROFILE.email).then(done, () => UI.toast(PROFILE.email)); else UI.toast(PROFILE.email); }
-  else if (a === "ask") { const c = PETE_TALK.choices[+id]; let ans = c.a; if (ans === "fact") ans = CAMPUS_FACTS[(UI._fact = ((UI._fact ?? -1) + 1) % CAMPUS_FACTS.length)]; $("#npc-text").textContent = ans; document.querySelectorAll(".choice").forEach((x) => x.classList.toggle("on", x === b)); }
+  else if (a === "mcard") {
+    const M = UI._npc === "pet" ? PET_TALK : MASCOTS[UI._npc]; const c = M && M.cards[+id]; if (!c) return;
+    let ans = c.a, go = c.open ? openBtn(c.open) : "";
+    if (ans === "fact") ans = CAMPUS_FACTS[(UI._fact = ((UI._fact ?? -1) + 1) % CAMPUS_FACTS.length)];
+    else if (ans === "pet") { G.petBird(); ans = PET_TALK.short + " fluffs up its crest, leans into your hand and does a happy little hop."; }
+    else if (ans === "next") { const n = nextUnvisited(); ans = n ? PET_TALK.short + " points a wing toward " + n.name + ". You haven't opened that one yet." : "You've opened every landmark. " + PET_TALK.short + " is impressed."; go = n ? `<button class="btn primary" data-act="go" data-id="${n.id}">Take me there ▶</button>` : ""; }
+    $("#npc-text").textContent = ans; $("#npc-go").innerHTML = go;
+    document.querySelectorAll(".mcard").forEach((x) => x.classList.toggle("on", x === b));
+  }
   else if (a === "reduce") { G.setReduce(b.checked); }
 }
 document.addEventListener("click", (e) => { const b = e.target.closest("[data-act='back'], [data-act='back-log']"); if (!b) return; if (b.dataset.act === "back-log") { history = []; UI.open("log"); return; } const prev = history.pop(); if (prev) { UI._cur = prev; UI.open(prev[0], prev[1], false); } });
@@ -215,7 +223,7 @@ const VIEWS = {
       crumb: `${AREA_NAME[AREA_OF[id]].toUpperCase()} / ${l.name.toUpperCase()}`, title: l.name,
       html: `<p class="eyebrow">Landmark</p><h2 class="h1" id="modal-title">${esc(l.name)}</h2>${l.fact ? `<p>${esc(l.fact)} ${l.source ? `<a class="src" href="${esc(l.source)}" target="_blank" rel="noopener">Source ↗</a>` : ""}</p>` : ""}
       <div class="box">${body}</div><div class="btnrow"><button class="btn ghost" data-act="open" data-id="map">Open map ▶</button><button class="btn ghost" data-act="open" data-id="log">Dig Log ▶</button></div>`,
-      after: () => here.forEach((p) => p.landmark === id && type === "project" && markVisited(p.id)),
+      after: () => { markVisited("lm:" + id); here.forEach((p) => p.landmark === id && type === "project" && markVisited(p.id)); },
     };
   },
   map() {
@@ -271,17 +279,26 @@ const VIEWS = {
       <p class="fine">${esc(SITE.footer)} Not an official UTEP site. All art is original. <a href="recruiter.html">Skip the game</a>.</p></div>` };
   },
   npc(o) {
-    const pete = o.id === "pete";
-    return {
-      crumb: "", title: o.name, head: "npc",
-      html: `<div class="npc-top"><canvas id="npc-portrait" width="64" height="64" aria-hidden="true"></canvas><div><p class="eyebrow light">Talking with</p><h2 class="h2" id="modal-title">${esc(o.name)}</h2></div></div>
-      <p id="npc-text" aria-live="polite">${esc(pete ? PETE_TALK.greet : o.line)}</p>
-      ${pete ? `<h3 class="h3">Ask Pete</h3><div class="grid3">${PETE_TALK.choices.map((c, i) => `<button class="choice" data-act="ask" data-id="${i}" ${i === 0 ? "autofocus" : ""}>${esc(c.q)} <span aria-hidden="true">▶</span></button>`).join("")}</div><div class="btnrow"><button class="btn ghost" data-act="open" data-id="about">MinerDex ▶</button><button class="btn ghost" data-act="open" data-id="log">Dig Log ▶</button></div>` : `<div class="btnrow"><button class="btn" data-act="close" autofocus>Thanks!</button></div>`}`,
-      after: () => { const g = $("#npc-portrait").getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(o.portrait, 0, 0, 64, 64); },
-    };
+    const M = o.pet ? PET_TALK : o.mascot ? MASCOTS[o.mascot] : null; UI._npc = o.pet ? "pet" : o.mascot || null;
+    const top = `<div class="npc-top"><canvas id="npc-portrait" width="64" height="64" aria-hidden="true"></canvas><div><p class="eyebrow light">Talking with</p><h2 class="h2" id="modal-title">${esc(o.name)}</h2></div></div>`;
+    const html = M
+      ? `${top}<p id="npc-text" aria-live="polite">${esc(M.greet)}</p>
+      <h3 class="h3">${esc(M.title)}</h3><div class="grid3 mcards n${M.cards.length}">${M.cards.map((c, i) => `<button class="choice mcard" data-act="mcard" data-id="${i}" ${i === 0 ? "autofocus" : ""}><span><b class="mc-t">${esc(c.t)}</b><span class="mc-s">${esc(c.s)}</span></span><span class="mc-go" aria-hidden="true">▶</span></button>`).join("")}</div>
+      <div class="btnrow npc-foot"><span id="npc-go"></span><button class="btn ghost" data-act="open" data-id="log">All work ▶</button></div>`
+      : `${top}<p id="npc-text" aria-live="polite">${esc(o.line)}</p><div class="btnrow"><button class="btn" data-act="close" autofocus>Thanks!</button></div>`;
+    return { crumb: "", title: o.name, head: "npc", html,
+      after: () => { const g = $("#npc-portrait").getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(o.portrait, 0, 0, 64, 64); } };
   },
 };
 
+function openBtn([kind, id, label]) {
+  const act = kind === "project" || kind === "landmark" ? kind : "open"; const did = act === "open" ? kind : id;
+  return `<button class="btn primary" data-act="${act}" data-id="${esc(did)}">${esc(label)} ▶</button>`;
+}
+function nextUnvisited() {
+  for (const l of LANDMARKS) { const pid = l.panel && l.panel.type === "project" ? l.panel.id : null; if (!visited.has("lm:" + l.id) && !(pid && visited.has(pid))) return l; }
+  return null;
+}
 const thumbCache = {};
 function thumb(aid) {
   if (thumbCache[aid]) return thumbCache[aid];

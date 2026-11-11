@@ -1,9 +1,10 @@
 // main.js : game loop, input, movement, camera, lighting, weather and the bus.
-import * as A from "./art.js";
-import { buildAreas } from "./world.js";
-import { LANDMARKS, STUDENT_LINES } from "./data.js";
-import { UI } from "./ui.js";
-import { Sound } from "./audio.js";
+import * as A from "./art.js?v=15";
+import { buildAreas } from "./world.js?v=15";
+import { LANDMARKS, STUDENT_LINES, MASCOTS, PET_TALK } from "./data.js?v=15";
+import { makeMascot, portraitOf } from "./mascots.js?v=15";
+import { UI } from "./ui.js?v=15";
+import { Sound } from "./audio.js?v=15";
 
 const T = A.T;
 const $ = (s) => document.querySelector(s);
@@ -17,7 +18,8 @@ const state = {
 const { art, areas } = buildAreas();
 const chars = {
   isaac: A.makeCharacter({ bg: "#f6d9a0", pal: { skin: "#c98d62", hair: "#2b1d16", shirt: "#e8742a", accent: "#1f3a6e", pants: "#2f3d5c", shoe: "#3a2a20" } }),
-  pete: A.makeCharacter({ hat: "#c9a46a", plaid: true, overalls: "#2f5a9a", bg: "#f6c98a", pal: { shirt: "#e0702a", skin: "#e2a77c", pants: "#2f5a9a", shoe: "#5a3a22" } }),
+  // original campus mascots (js/mascots.js?v=15)
+  miner: makeMascot("miner"), jack: makeMascot("jack"), lizard: makeMascot("lizard"), coyote: makeMascot("coyote"),
   s0: A.makeCharacter({ backpack: "#2a9d8f", long: true, pal: { hair: "#6b3e22", shirt: "#2b4d8f", accent: "#ffffff", skin: "#e0ad84", pants: "#4a4a55" } }),
   s1: A.makeCharacter({ cap: "#ff8200", backpack: "#d8502e", pal: { hair: "#e2c06a", shirt: "#f2f2ee", accent: "#ff8200", skin: "#f0c3a0" } }),
   s2: A.makeCharacter({ backpack: "#1f3a6e", glasses: true, pal: { hair: "#151018", shirt: "#2a9d8f", accent: "#f2f2ee", skin: "#8d5a3c", pants: "#5a4a3a" } }),
@@ -30,8 +32,9 @@ const chars = {
   s9: A.makeCharacter({ cap: "#2a9d8f", pal: { hair: "#3a2418", shirt: "#ff8200", accent: "#1f3a6e", skin: "#d39a70", pants: "#4a4a55" } }),
 };
 const bird = A.makeRoadrunner();
-const NPC_NAMES = { pete: "Paydirt Pete", s0: "Marisol, CS junior", s1: "Tyler, mechanical engineering", s2: "Andre, math minor", s3: "Priya, biology", s4: "Diego, kinesiology", s5: "Hannah, film", s6: "Luis, civil engineering", s7: "Sam, computer science", s8: "Noemi, chemistry", s9: "Rafa, sports management" };
-const PET = "Chispa";
+const petPortrait = portraitOf(bird.right.idle[0], "#cfe3d1", 0, 0, -7);
+const NPC_NAMES = { miner: MASCOTS.miner.name, jack: MASCOTS.jack.name, lizard: MASCOTS.lizard.name, coyote: MASCOTS.coyote.name, s0: "Marisol, CS junior", s1: "Tyler, mechanical engineering", s2: "Andre, math minor", s3: "Priya, biology", s4: "Diego, kinesiology", s5: "Hannah, film", s6: "Luis, civil engineering", s7: "Sam, computer science", s8: "Noemi, chemistry", s9: "Rafa, sports management" };
+const PET = PET_TALK.short;
 
 // glow sprites for lights
 const glowSprite = (() => { const [c, g] = A.mk(64, 64); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(0.45, "rgba(255,255,255,0.55)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return c; })();
@@ -138,15 +141,15 @@ function findTarget() {
   let best = null, bd = 1e9;
   const consider = (kind, obj, d, r) => { if (d < r && d / r < bd) { bd = d / r; best = { kind, obj }; } };
   for (const n of npcs) consider("npc", n, Math.hypot(player.x - n.x, player.y - n.y), 28);
-  consider("pet", pet, Math.hypot(player.x - pet.x, player.y - pet.y) * 1.6 + 4, 24);
+  consider("pet", pet, Math.hypot(player.x - pet.x, player.y - pet.y) * 1.4 + 4, 40);
   for (const l of area.landmarks) consider("landmark", l, Math.hypot(player.x - l.x, player.y - l.y), l.r);
   if (area.bus) consider("bus", area.bus, Math.hypot(player.x - area.bus.x, player.y - area.bus.y), area.bus.r);
   return best;
 }
 function targetLabel(t) {
   if (!t) return null;
-  if (t.kind === "npc") return "Talk to " + NPC_NAMES[t.obj.id].split(",")[0];
-  if (t.kind === "pet") return "Pet " + PET;
+  if (t.kind === "npc") return "Talk to " + (MASCOTS[t.obj.id] ? MASCOTS[t.obj.id].short : NPC_NAMES[t.obj.id].split(",")[0]);
+  if (t.kind === "pet") return "Talk to " + PET;
   if (t.kind === "bus") return "Ride the Sun Metro";
   return "Open " + t.obj.label;
 }
@@ -154,12 +157,12 @@ function interact() {
   if (UI.isOpen() || state.busy) return;
   const t = target; if (!t) { UI.toast("Nothing to interact with here. Walk up to a building, a person, or " + PET + "."); return; }
   Sound.blip("open");
-  if (t.kind === "npc") { if (t.obj.id === "pete") UI.open("npc", { id: "pete", name: NPC_NAMES.pete, portrait: chars.pete.portrait }); else UI.open("npc", { id: t.obj.id, name: NPC_NAMES[t.obj.id], portrait: chars[t.obj.id].portrait, line: STUDENT_LINES[parseInt(t.obj.id.slice(1)) % STUDENT_LINES.length] }); }
-  else if (t.kind === "pet") petBird();
+  if (t.kind === "npc") { const id = t.obj.id; if (MASCOTS[id]) UI.open("npc", { id, mascot: id, name: MASCOTS[id].name, portrait: chars[id].portrait }); else UI.open("npc", { id, name: NPC_NAMES[id], portrait: chars[id].portrait, line: STUDENT_LINES[parseInt(id.slice(1)) % STUDENT_LINES.length] }); }
+  else if (t.kind === "pet") UI.open("npc", { id: "pet", pet: true, name: PET_TALK.name, portrait: petPortrait });
   else if (t.kind === "bus") rideBus(state.areaId === "main" ? "athletics" : "main");
   else UI.open("landmark", t.obj.id);
 }
-function petBird() { pet.hop = 0.6; hearts.push({ x: pet.x, y: pet.y - 24, t: 0 }); Sound.blip("pet"); UI.toast(PET + " the roadrunner fluffs up its crest and does a happy little hop."); }
+function petBird() { pet.hop = 0.6; hearts.push({ x: pet.x, y: pet.y - 24, t: 0 }); Sound.blip("pet"); if (!UI.isOpen()) UI.toast(PET + " the roadrunner fluffs up its crest and does a happy little hop."); }
 const hearts = [];
 
 // ---------------------------------------------------------------- bus transition
@@ -246,8 +249,8 @@ function updateCam(dt) {
 const rain = [], dust = [];
 let flash = 0, nextFlash = 6;
 function drawChar(e, sprite, frameIdx, extraY = 0) {
-  const fr = sprite[e.dir][frameIdx];
-  vg.drawImage(fr, Math.round(e.x - 13 - ix), Math.round(e.y - 35 - iy + extraY));
+  const fr = sprite[e.dir][frameIdx]; const foot = sprite.foot ?? 34;
+  vg.drawImage(fr, Math.round(e.x - (fr.width >> 1) - ix), Math.round(e.y - foot - 1 - iy + extraY));
 }
 let ix = 0, iy = 0;
 function render(dt) {
@@ -323,7 +326,7 @@ function render(dt) {
     for (const p of dust) { if (!state.reduce) { p.x += p.v * dt; p.y += Math.sin(t * 2 + p.v) * 8 * dt; } if (p.x > vw) { p.x = -4; p.y = Math.random() * vh; } vg.fillStyle = p.s > 1 ? "rgba(240,205,160,0.55)" : "rgba(250,225,190,0.7)"; vg.fillRect(Math.round(p.x), Math.round(p.y), p.s * 2, p.s); }
   } else dust.length = 0;
   // markers: "!" over people, hearts
-  for (const n of npcs) { const bob = state.reduce ? 0 : Math.round(Math.sin(t * 4 + n.x) * 1); bubble(Math.round(n.x - ix), Math.round(n.y - 47 - iy + bob)); }
+  for (const n of npcs) { const bob = state.reduce ? 0 : Math.round(Math.sin(t * 4 + n.x) * 1); bubble(Math.round(n.x - ix), Math.round(n.y - 47 - ((n.sprite.foot ?? 34) - 34) - iy + bob)); }
   for (let i = hearts.length - 1; i >= 0; i--) { const h = hearts[i]; h.t += dt; if (h.t > 1.2) { hearts.splice(i, 1); continue; } heart(Math.round(h.x - ix), Math.round(h.y - iy - h.t * 14)); }
   // interact highlight
   if (target && target.kind === "landmark") { const l = target.obj; const a = 0.5 + Math.sin(t * 5) * 0.3; vg.fillStyle = `rgba(255,217,106,${a})`; vg.fillRect(Math.round(l.x - 9 - ix), Math.round(l.y - 2 - iy), 18, 1); vg.fillRect(Math.round(l.x - 7 - ix), Math.round(l.y + 1 - iy), 14, 1); }
@@ -376,7 +379,7 @@ export const Game = {
   fps() { const a = fpsS.reduce((s, v) => s + v, 0) / Math.max(1, fpsS.length); return Math.round(1 / a); },
   get scale() { return scale; },
 };
-window.__game = Game;
+window.__game = Game; window.__ui = UI;
 
 UI.init(Game);
 Game.setReduce(state.reduce);
