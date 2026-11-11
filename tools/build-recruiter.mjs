@@ -107,7 +107,7 @@ const html = `<!doctype html>
       </ul>
     </section>
   </main>
-  <footer class="wrap foot"><p>Prefer something more fun? <a href="index.html">Explore the blocky UTEP campus version</a>. Minecraft-inspired fan art style; not affiliated with Mojang, Microsoft, or UTEP.</p></footer>
+  <footer class="wrap foot"><p>Prefer something more fun? <a href="index.html">Play the campus adventure</a>. <span class="mc">Fan-inspired, not affiliated with Mojang or Microsoft.</span> Not an official UTEP site.</p></footer>
 </body>
 </html>
 `;
