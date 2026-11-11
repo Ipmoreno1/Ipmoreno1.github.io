@@ -19,7 +19,7 @@ export const PROFILE = {
   // Paste the real profile URL here once it is public and it will show up everywhere.
   github: "https://github.com/Ipmoreno1",
   resumePdf: "assets/Resume_Isaac_Moreno.pdf",
-  siteUrl: "", // e.g. "https://<username>.github.io/utep-minecraft/" once deployed (used for OpenGraph)
+  siteUrl: "https://ipmoreno1.github.io/",
 };
 
 export const ABOUT = [
@@ -63,7 +63,7 @@ export const PROJECTS = [
   {
     id: "espn-hub",
     title: "ESPN Hub",
-    icon: "chart",
+    icon: "trophy",
     dates: "Mar 2026",
     kind: "Multi-sport analytics dashboard",
     categories: ["Web", "Data"],
@@ -99,7 +99,7 @@ export const PROJECTS = [
   {
     id: "javadoc-llm-tests",
     title: "Does Documentation Help?",
-    icon: "book",
+    icon: "quill",
     dates: "Fall 2026 (in progress)",
     kind: "CS 4371 Independent Study with Dr. Yoonsik Cheon",
     categories: ["Research", "Testing", "AI/ML"],
@@ -212,11 +212,11 @@ export const CAMPUS_FACTS = [
 ];
 
 export const PETE_LINES = [
-  "Howdy, Miner! I'm Pete. Welcome to a blocky little UTEP.",
-  "This is Isaac's portfolio. Walk with WASD or the arrow keys, hold Shift to run.",
-  "Walk up to a building and press E to step inside. Each one holds a piece of Isaac's story.",
+  "Howdy, Miner! I'm Pete. This camp is Centennial Plaza, Isaac's home base.",
+  "This is Isaac's portfolio. Walk with WASD or the arrow keys. Space rolls. Click or F swings.",
+  "The glowing map on the table starts missions. Each landmark on that map holds a piece of Isaac's story.",
   "In a hurry? The orange \"Skip the game\" button up top has everything on one page.",
   "Fun fact: the name Paydirt Pete came from a 1974 contest with over 500 entries.",
-  "Press Space to swing your pick at ore boulders, and press E next to the wolf to pet him.",
-  "Visit all ten landmarks for a special advancement. Good luck!",
+  "Press I for gear, M for the mission map, and E next to me, the smith, or the wolf.",
+  "Finish all ten missions for a special advancement. Good luck!",
 ];

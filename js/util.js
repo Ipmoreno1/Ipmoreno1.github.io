@@ -1,4 +1,5 @@
-export const TILE = 16;
+export const TW = 64, TH = 32, ZH = 36;
+
 export function rng(seed) {
   let a = seed >>> 0;
   return function () {
@@ -9,6 +10,7 @@ export function rng(seed) {
   };
 }
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+export const lerp = (a, b, t) => a + (b - a) * t;
 export const pick = (r, arr) => arr[Math.floor(r() * arr.length)];
 export function makeCanvas(w, h) {
   const c = document.createElement("canvas");
@@ -17,7 +19,6 @@ export function makeCanvas(w, h) {
   ctx.imageSmoothingEnabled = false;
   return [c, ctx];
 }
-// pixel-art painter: rows of chars mapped through a palette
 export function drawPix(ctx, rows, pal, x, y, flip = false) {
   const w = rows[0].length;
   for (let j = 0; j < rows.length; j++) {
@@ -38,3 +39,12 @@ export function shade(hex, amt) {
   r = clamp(r, 0, 255); g = clamp(g, 0, 255); b = clamp(b, 0, 255);
   return "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
 }
+export function iso(wx, wy, wz = 0) {
+  return { x: (wx - wy) * (TW / 2), y: (wx + wy) * (TH / 2) - wz * ZH };
+}
+export function isoInv(sx, sy) {
+  const wx = sx / TW + sy / TH;
+  const wy = sy / TH - sx / TW;
+  return { wx, wy };
+}
+export function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
