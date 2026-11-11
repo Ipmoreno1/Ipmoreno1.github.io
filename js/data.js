@@ -2,6 +2,7 @@
 //  data.js : ALL of Isaac's portfolio content lives here.
 //  Edit this file to change text on the game AND the recruiter view.
 //  After editing, run:  node tools/build-recruiter.mjs   (regenerates recruiter.html)
+//  This copy powers the 2D pixel campus (utep-pixel). The project texts are the same as the 3D version.
 //  Rules kept on purpose: no grades, no phone number, no home address, no em dashes.
 // ============================================================================
 
@@ -37,7 +38,7 @@ export const EDUCATION = {
   location: "El Paso, TX",
 };
 
-// category values drive the Projectdex filters
+// category values drive the Dig Log filters
 export const CATEGORIES = ["All", "Web", "Data", "AI/ML", "Research", "Testing", "Experience"];
 
 export const PROJECTS = [
@@ -151,6 +152,25 @@ export const PROJECTS = [
     landmark: "union",
     links: [],
   },
+  {
+    id: "this-site",
+    title: "This site: a playable portfolio",
+    icon: "map",
+    dates: "Nov 2026",
+    kind: "Personal project, the campus you are walking around right now",
+    categories: ["Web"],
+    stack: ["HTML", "CSS", "JavaScript", "Canvas 2D"],
+    summary: "A top-down pixel-art take on the UTEP campus where each landmark opens part of my portfolio. A plain recruiter view has the same content on one page.",
+    bullets: [
+      "All art is original pixel art drawn in code when the page loads: tiles, Bhutanese-style buildings, desert plants, characters, and the El Paso star on the Franklin Mountains.",
+      "Vanilla HTML, CSS, and JavaScript on a 2D canvas with no frameworks, built as static files ready for GitHub Pages.",
+      "Keyboard, touch, and screen reader friendly, with a reduce-animation option and a no-JavaScript fallback.",
+      "All content lives in one data file that also generates the plain recruiter page.",
+    ],
+    status: "Ongoing",
+    landmark: "lhakhang",
+    links: [],
+  },
 ];
 
 export const EXPERIENCE_IDS = ["disney-photopass", "clear-view-realty"];
@@ -211,12 +231,28 @@ export const CAMPUS_FACTS = [
   "The name Paydirt Pete came from a 1974 contest with over 500 entries.",
 ];
 
-export const PETE_LINES = [
-  "Howdy, Miner! I'm Pete. This camp is Centennial Plaza, Isaac's home base.",
-  "This is Isaac's portfolio. Walk with WASD or the arrow keys. Space rolls. Click or F swings.",
-  "The glowing map on the table starts missions. Each landmark on that map holds a piece of Isaac's story.",
-  "In a hurry? The orange \"Skip the game\" button up top has everything on one page.",
-  "Fun fact: the name Paydirt Pete came from a 1974 contest with over 500 entries.",
-  "Press I for gear, M for the mission map, and E next to me, the smith, or the wolf.",
-  "Finish all ten missions for a special advancement. Good luck!",
+// Optional link to the 3D Minecraft Dungeons-style version of this portfolio.
+// Leave it empty until there is a confirmed live URL. Nothing about it shows while it is empty.
+export const SITE = {
+  dungeonsVersionUrl: "https://ipmoreno1.github.io/dungeons/",
+  footer: "Fan-inspired by playable portfolios, not affiliated with any game company.",
+};
+
+// Paydirt Pete's dialogue in the pixel campus.
+export const PETE_TALK = {
+  greet: "Howdy, Miner! Paydirt Pete here. You're standing in Centennial Plaza, Isaac's home base. What can I tell you?",
+  choices: [
+    { q: "Who is Isaac?", a: "Isaac Moreno is a Computer Science senior at UTEP with a Minor in Mathematics. He graduates in December 2026 and he's looking for new-grad software engineering roles." },
+    { q: "What does he build?", a: "Full-stack web apps like Moreno Captures and ESPN Hub. This semester he's doing an independent study with Dr. Yoonsik Cheon on whether Javadoc helps LLMs write better Java unit tests, and he's still learning mutation testing (PIT) along the way." },
+    { q: "How do I get around?", a: "Walk with WASD or the arrow keys and hold Shift to run. Press E next to a building to go in. P opens the Dig Log, M the map, C contact. The Sun Metro stop down south runs to the Sun Bowl." },
+    { q: "Tell me a campus fact", a: "fact" },
+  ],
+};
+
+export const STUDENT_LINES = [
+  "I'm headed to the Chemistry and Computer Science Building. Isaac's independent study lives in there.",
+  "UTEP opened in 1914 as the Texas State School of Mines and Metallurgy. Wild, right?",
+  "The Sun Metro stop is at the south end of campus. It goes over to the Sun Bowl and the Don Haskins Center.",
+  "Bhutanese-inspired architecture has been part of the campus design since 1917. Look at those red bands!",
+  "In a hurry? The Skip game button in the corner shows everything on one page.",
 ];
