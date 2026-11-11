@@ -1,10 +1,10 @@
 /* UTEP Pixel Campus, v10 "crisp" UI.
    Rules for crispness: Press Start 2P only at 8 / 16 / 24 px (its 8px grid lands on whole pixels),
    whole-pixel borders and offsets, no translate(-50%) centering (it causes half-pixel blur). */
-@font-face { font-family: "PressStart"; src: url("../assets/fonts/PressStart2P.woff2") format("woff2"); font-display: swap; }
-@font-face { font-family: "VT323"; src: url("../assets/fonts/VT323.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "PressStart"; src: url("../assets/fonts/PressStart2P.woff2?v=15") format("woff2"); font-display: swap; }
+@font-face { font-family: "VT323"; src: url("../assets/fonts/VT323.woff2?v=15") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Regular.woff2?v=15") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Bold.woff2?v=15") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
   --paper: #fafbea; --paper2: #f2f3e1; --card: #e8efdf; --card2: #dfe9d6; --cardline: #b3c7b3;
   --ink: #23364a; --text: #34505c; --muted: #5f7570; --frame: #29394d; --ring: #a4b5c3; --head: #e0e8e6; --headline: #879aa6;
@@ -228,6 +228,12 @@ table.help th { width: 110px; font-weight: 400; color: #2f5562; }
 #npc-text { font-size: 22px; line-height: 22px; min-height: 3em; }
 .choice { text-align: left; background: var(--card); border: 2px solid var(--cardline); border-radius: 3px; padding: 12px; font: 400 20px/23px var(--vt); color: #2f5562; display: flex; justify-content: space-between; gap: 8px; }
 .choice.on, .choice:hover { border-color: #507c88; background: var(--card2); }
+.mcard { align-items: center; min-height: 72px; }
+.mcard .mc-t { display: block; font: 400 8px/12px var(--pix); color: #23485a; -webkit-font-smoothing: none; margin-bottom: 4px; }
+.mcard .mc-s { display: block; font: 400 18px/18px var(--vt); color: #5d7f86; }
+.mcard .mc-go { flex: none; width: 22px; height: 22px; display: grid; place-items: center; border: 2px solid #8fb0b4; background: #fffaf0; font-size: 12px; color: #2f5562; }
+.npc-foot { justify-content: space-between; align-items: center; margin-top: 14px; } #npc-go:empty { display: none; } .npc-foot > .ghost { margin-left: auto; }
+.mcards.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 /* bus transition */
 #bus-fx { position: fixed; inset: 0; z-index: 30; background: rgba(22,52,66,0); transition: background .4s; display: grid; place-items: center; }
 #bus-fx.show { background: rgba(22,62,101,.92); }
@@ -281,7 +287,7 @@ html.reduce * { animation: none !important; transition: none !important; }
 }
 
 /* pixel cursors (original art, UTEP navy, cream and orange) */
-:root { --cur: url("../assets/cursors/miner-arrow.svg") 2 1, default; --cur-ptr: url("../assets/cursors/miner-pointer.svg") 2 1, pointer; }
+:root { --cur: url("../assets/cursors/miner-arrow.svg?v=15") 2 1, default; --cur-ptr: url("../assets/cursors/miner-pointer.svg?v=15") 2 1, pointer; }
 html, body, canvas { cursor: var(--cur); }
 a, button, [role="button"], select, summary, label[for], .mini, .tabs > *, .dpad button, .run, .act, .pcard, .chip, .place, .choice, .btn, .pet-btn, .pop button { cursor: var(--cur-ptr); }
 .act:disabled { cursor: var(--cur); }
