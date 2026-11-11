@@ -79,7 +79,7 @@ tools/build-recruiter.mjs
 ```
 
 ## Deploy to GitHub Pages
-The live user site is `https://ipmoreno1.github.io/`. Do not publish without Isaac's go-ahead.
+The live user site is `https://ipmoreno.dev/`. Do not publish without Isaac's go-ahead.
 Push the contents of this folder to the `Ipmoreno1/Ipmoreno1.github.io` repo `main` branch.
 
 ## Credits / notes
