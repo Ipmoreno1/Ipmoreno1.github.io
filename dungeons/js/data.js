@@ -19,7 +19,7 @@ export const PROFILE = {
   // Paste the real profile URL here once it is public and it will show up everywhere.
   github: "https://github.com/Ipmoreno1",
   resumePdf: "assets/Resume_Isaac_Moreno.pdf",
-  siteUrl: "https://ipmoreno1.github.io/dungeons/",
+  siteUrl: "https://ipmoreno.dev/dungeons/",
 };
 
 export const ABOUT = [
