@@ -3,92 +3,180 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Isaac Moreno | Playable Portfolio (UTEP Computer Science)</title>
-  <meta name="description" content="Isaac Moreno, UTEP Computer Science senior with a Minor in Mathematics (graduating Dec 2026). Explore a blocky, game-style UTEP campus to see his projects, research, experience, and resume.">
+  <title>Isaac Moreno / A Campus Adventure</title>
+  <meta name="description" content="Isaac Moreno, UTEP Computer Science senior with a Minor in Mathematics (graduating Dec 2026). A camp-and-mission campus adventure covering his projects, research, experience, and resume.">
   <meta name="theme-color" content="#1f4a8a">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Isaac Moreno | Playable Portfolio">
-  <meta property="og:description" content="Walk a blocky UTEP campus to explore Isaac Moreno's projects, research, and resume. Or skip straight to the plain view.">
-  <meta property="og:image" content="assets/og-image.png">
+  <meta property="og:title" content="Isaac Moreno / A Campus Adventure">
+  <meta property="og:description" content="Start at Centennial Plaza, pick a UTEP landmark mission, and read Isaac Moreno's projects, research, and resume. Or skip straight to the plain recruiter view.">
+  <meta property="og:image" content="https://ipmoreno1.github.io/assets/og-image.png">
+  <meta property="og:url" content="https://ipmoreno1.github.io/">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/favicon.png">
+  <link rel="preload" href="assets/fonts/Monocraft.otf" as="font" type="font/otf" crossorigin>
   <link rel="stylesheet" href="css/style.css">
-  <link rel="modulepreload" href="js/main.js">
 </head>
 <body>
-  <a class="skip-link" href="recruiter.html">Skip the game: view projects</a>
+  <a class="skip-link" href="recruiter.html">Skip the game: recruiter view</a>
   <header class="topbar">
     <a class="brand" href="recruiter.html" aria-label="Isaac Moreno, plain portfolio view"><span class="brand-block" aria-hidden="true"></span><span class="brand-text">Isaac Moreno</span></a>
     <nav aria-label="Portfolio sections">
-      <button class="nav-btn" data-open="projects">Projects</button>
-      <button class="nav-btn" data-open="map">Map</button>
-      <button class="nav-btn" data-open="resume">Resume</button>
-      <button class="nav-btn" data-open="about">About Me</button>
-      <button class="nav-btn" data-open="contact">Contact</button>
+      <button class="ui-btn nav-btn" data-open="inventory" type="button">Gear</button>
+      <button class="ui-btn nav-btn" data-open="map" type="button">Missions</button>
+      <button class="ui-btn nav-btn" data-open="resume" type="button">Resume</button>
+      <button class="ui-btn nav-btn" data-open="about" type="button">About</button>
+      <button class="ui-btn nav-btn" data-open="contact" type="button">Contact</button>
     </nav>
-    <a class="skip-btn" href="recruiter.html">Skip the game: view projects</a>
+    <button id="btn-pause" class="ui-btn pause-btn" type="button" aria-label="Pause and options">II</button>
+    <a class="ui-btn skip-btn" href="recruiter.html"><span class="skip-long">Skip game (recruiter view)</span><span class="skip-short">Skip game</span></a>
   </header>
 
   <main>
     <h1 class="sr-only">Isaac Moreno, playable portfolio</h1>
-    <canvas id="game" tabindex="0" aria-label="Game view of a blocky UTEP campus. Use the navigation buttons or the plain recruiter view for the same content."></canvas>
+    <canvas id="game" tabindex="0" aria-label="3D game view of a voxel UTEP camp and mission dungeons. Use the buttons, or the plain recruiter view, for the same content."></canvas>
 
-    <button id="prompt" class="prompt" hidden></button>
-    <div id="dialog" class="dialog" hidden aria-live="polite"></div>
+    <div id="objective" class="objective" hidden>
+      <span class="obj-mark" aria-hidden="true"></span>
+      <span id="objective-text"></span>
+    </div>
+
+    <button id="prompt" class="prompt tip-box" hidden type="button"></button>
+    <div id="chat" class="chat" aria-live="polite" aria-label="Chat"></div>
     <div id="toasts" class="toasts" aria-live="polite"></div>
+    <div id="tooltip" class="tip-box floating" hidden role="tooltip"></div>
 
-    <div class="hud">
-      <div id="xp" class="xp" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-labelledby="xp-label">
-        <span id="xp-level" class="xp-level">0</span>
-        <span class="xp-bar"><span id="xp-fill" class="xp-fill"></span></span>
-        <span id="xp-label" class="xp-label">0/10 landmarks visited</span>
+    <div class="hud" id="hud" hidden aria-label="Player status">
+      <div class="hud-cluster">
+        <div class="hud-wing left">
+          <div class="soul-wrap" title="Souls"><div id="souls" class="soul-bar" role="progressbar" aria-label="Souls" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="souls-fill"></span></div></div>
+          <div id="artifacts" class="art-row" aria-label="Artifacts">
+            <button class="hud-slot art" data-art="0" type="button" aria-label="Artifact 1"><span class="key">1</span><img alt="" width="36" height="36"></button>
+            <button class="hud-slot art" data-art="1" type="button" aria-label="Artifact 2"><span class="key">2</span><img alt="" width="36" height="36"></button>
+            <button class="hud-slot art" data-art="2" type="button" aria-label="Artifact 3"><span class="key">3</span><img alt="" width="36" height="36"></button>
+          </div>
+        </div>
+        <div class="hud-heart">
+          <span id="xp-level" class="xp-level">1</span>
+          <div id="heart-wrap" class="heart-wrap" role="img" aria-label="Health">
+            <canvas id="heart-canvas" width="88" height="88"></canvas>
+            <span id="heart-num" class="heart-num">100</span>
+          </div>
+        </div>
+        <div class="hud-wing right">
+          <div class="art-row">
+            <button id="btn-potion" class="hud-slot potion" type="button" aria-label="Healing tonic, key Q"><img id="potion-icon" alt="" width="40" height="40"><span class="key">Q</span><span id="potion-cd" class="cd" hidden></span></button>
+            <button id="btn-roll" class="hud-slot" type="button" aria-label="Roll, key Space"><img id="roll-icon" alt="" width="36" height="36"><span class="key">Sp</span><span id="roll-cd" class="cd" hidden></span></button>
+            <div class="hud-slot quiet" id="arrows-slot" aria-label="Arrows"><img id="arrows-icon" alt="" width="32" height="32"><span id="arrows-num" class="count">30</span></div>
+            <button id="btn-map" class="hud-slot" type="button" aria-label="Mission map, key M"><img id="map-icon" alt="" width="36" height="36"><span class="key">M</span></button>
+          </div>
+        </div>
+        <div id="xp" class="xp" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><span class="xp-bar"><span id="xp-fill" class="xp-fill"></span></span></div>
+      </div>
+      <div class="hud-corner">
+        <div class="currency" id="currency" aria-label="Paydirt"><img id="coin-icon" alt="" width="22" height="22"><span id="paydirt">0</span></div>
+        <button id="btn-inv" class="hud-slot inv-btn" type="button" aria-label="Gear, key I"><img id="inv-icon" alt="" width="32" height="32"><span class="key">I</span></button>
       </div>
     </div>
-    <div class="toggles" role="group" aria-label="Settings">
-      <button id="t-time" class="mc-btn small">Time: Day</button>
-      <button id="t-season" class="mc-btn small">Season: Summer</button>
-      <button id="t-sound" class="mc-btn small" aria-pressed="false">Sound: Off</button>
-      <button id="t-motion" class="mc-btn small" aria-pressed="false">Motion: Full</button>
-      <button id="t-help" class="mc-btn small">Help (H)</button>
-    </div>
-    <canvas id="minimap" class="minimap" width="200" height="144" aria-hidden="true"></canvas>
 
     <div class="dpad" aria-label="Touch controls">
-      <div class="pad">
-        <button data-pad="up" aria-label="Up" class="pad-up">&#9650;</button>
-        <button data-pad="left" aria-label="Left" class="pad-left">&#9664;</button>
-        <button data-pad="right" aria-label="Right" class="pad-right">&#9654;</button>
-        <button data-pad="down" aria-label="Down" class="pad-down">&#9660;</button>
-      </div>
+      <div id="stick" class="stick" aria-hidden="true"><span id="stick-knob" class="stick-knob"></span></div>
       <div class="ab">
-        <button data-pad="b" aria-label="Swing pickaxe" class="pad-b">B</button>
-        <button data-pad="a" aria-label="Interact" class="pad-a">A</button>
+        <button data-pad="x" aria-label="Attack" class="pad-x" type="button"><span aria-hidden="true">&#9876;</span></button>
+        <button data-pad="b" aria-label="Roll" class="pad-b" type="button">B</button>
+        <button data-pad="a" aria-label="Interact" class="pad-a" type="button">A</button>
+        <button data-pad="q" aria-label="Drink tonic" class="pad-q" type="button"><span aria-hidden="true">&#9829;</span></button>
+      </div>
+    </div>
+    <div id="nametag" class="nametag" hidden></div>
+    <div id="mission-banner" class="mission-banner" hidden aria-live="polite"><p class="kicker">Mission</p><h2>Mission</h2><p></p></div>
+    <div id="fade" class="fade" aria-hidden="true"></div>
+
+    <div id="panel-wrap" class="overlay" hidden>
+      <div id="panel" class="sheet" role="dialog" aria-modal="true" aria-labelledby="panel-title">
+        <div class="sheet-head"><h2 id="panel-title">Panel</h2><button id="panel-close" class="ui-btn small close" aria-label="Close panel" type="button">X</button></div>
+        <div id="panel-body" class="sheet-body"></div>
       </div>
     </div>
 
-    <div id="panel-wrap" class="panel-wrap" hidden>
-      <div id="panel" class="panel gui" role="dialog" aria-modal="true" aria-labelledby="panel-title">
-        <div class="panel-head"><h2 id="panel-title">Panel</h2><button id="panel-close" class="mc-btn small close" aria-label="Close panel">X</button></div>
-        <div id="panel-body" class="panel-body"></div>
+    <div id="inv-wrap" class="overlay" hidden>
+      <div id="inv" class="sheet wide inv-sheet" role="dialog" aria-modal="true" aria-labelledby="inv-title">
+        <div class="sheet-head"><h2 id="inv-title">Gear</h2><button id="inv-close" class="ui-btn small close" aria-label="Close gear" type="button">X</button></div>
+        <div id="inv-body" class="sheet-body inv-body"></div>
+      </div>
+    </div>
+
+    <div id="map-wrap" class="overlay map-overlay" hidden>
+      <div id="map-labels" class="map-labels" aria-hidden="true"></div>
+      <div id="worldmap" class="map-ui" role="dialog" aria-modal="true" aria-labelledby="map-title">
+        <div class="map-head">
+          <h2 id="map-title">Mission Select</h2>
+          <p class="map-sub">UTEP and the Franklin Mountains, star included. Stylized, not to scale.</p>
+          <button id="map-close" class="ui-btn small close" aria-label="Close map" type="button">X</button>
+        </div>
+        <ul id="mission-list" class="mission-list" aria-label="Missions"></ul>
+        <aside id="briefing" class="briefing" aria-live="polite"></aside>
+      </div>
+    </div>
+
+    <div id="loot-wrap" class="overlay" hidden>
+      <div class="loot-stage" role="dialog" aria-modal="true" aria-labelledby="loot-name">
+        <canvas id="loot-art" width="200" height="200" aria-hidden="true"></canvas>
+        <p class="loot-kicker" id="loot-kicker">Item found</p>
+        <h2 id="loot-name">Item</h2>
+        <p id="loot-rarity" class="loot-rarity"></p>
+        <p id="loot-desc" class="loot-desc"></p>
+        <button id="loot-take" class="ui-btn big primary" type="button">Collect</button>
+      </div>
+    </div>
+
+    <div id="complete-wrap" class="overlay" hidden>
+      <div class="sheet complete-sheet" role="dialog" aria-modal="true" aria-labelledby="complete-title">
+        <p class="complete-kicker">Mission complete</p>
+        <h2 id="complete-title">Done</h2>
+        <div id="complete-body" class="sheet-body"></div>
+        <div class="btn-row">
+          <button id="complete-read" class="ui-btn" type="button">Read the story</button>
+          <button id="complete-continue" class="ui-btn big primary" type="button">Return to camp</button>
+        </div>
       </div>
     </div>
 
     <section id="intro" class="intro" aria-labelledby="intro-title">
       <div class="intro-card">
-        <p class="intro-kicker">A playable portfolio</p>
-        <h2 id="intro-title">ISAAC MORENO</h2>
+        <h2 id="intro-title" class="logo"><canvas id="title-logo" aria-hidden="true"></canvas><span class="sr-only">Isaac Moreno</span><span id="splash" class="splash" aria-hidden="true">Hire this miner!</span></h2>
+        <p class="edition">A CAMPUS ADVENTURE</p>
         <p class="intro-sub">Computer Science senior at UTEP, Minor in Mathematics. Graduating Dec 2026.</p>
         <div class="intro-btns">
-          <button id="intro-start" class="mc-btn big primary">Start exploring</button>
-          <a class="mc-btn big" href="recruiter.html">Skip the game: view projects</a>
+          <button id="intro-start" class="ui-btn big primary" type="button">Play</button>
+          <a class="ui-btn big" href="recruiter.html"><span class="skip-long">Skip game (recruiter view)</span><span class="skip-short">Skip game</span></a>
+          <a class="ui-btn big" href="assets/Resume_Isaac_Moreno.pdf" target="_blank" rel="noopener">Resume</a>
         </div>
-        <p class="intro-hint touch-hint">Use the pad to walk. <kbd>A</kbd> enters buildings, <kbd>B</kbd> swings your pick.</p>
-        <p class="intro-hint keys-hint"><kbd>WASD</kbd> walk &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>E</kbd> enter &nbsp; <kbd>H</kbd> help</p>
-        <p class="intro-fine">Minecraft-inspired fan art style. Not affiliated with Mojang, Microsoft, or UTEP.</p>
+        <p class="intro-hint touch-hint">Drag the left stick to walk. <kbd>A</kbd> interacts, <kbd>B</kbd> rolls, the sword swings.</p>
+        <p class="intro-hint keys-hint"><kbd>WASD</kbd> walk <kbd>Click</kbd>/<kbd>F</kbd> attack <kbd>Space</kbd> roll <kbd>E</kbd> interact <kbd>Q</kbd> tonic <kbd>M</kbd> missions <kbd>I</kbd> gear <kbd>Esc</kbd> pause</p>
       </div>
+      <p class="intro-version">Portfolio v4.0 · <a href="https://github.com/Ipmoreno1" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="intro-fine">Fan-inspired, not affiliated with Mojang or Microsoft.</p>
     </section>
+    <div id="loading" class="loading" role="status" aria-live="polite">
+      <div class="load-card">
+        <p class="load-title">Isaac Moreno</p>
+        <p class="load-sub">A Campus Adventure</p>
+        <div class="load-bar"><span id="load-fill"></span></div>
+        <p id="load-text" class="load-text">Loading...</p>
+        <a class="load-skip" href="recruiter.html">Skip game (recruiter view)</a>
+      </div>
+    </div>
+    <div id="nogl" class="nogl" hidden role="alert">
+      <div class="sheet"><div class="sheet-body">
+        <h2>3D is not available here</h2>
+        <p>This browser or device could not start WebGL, which the game needs.</p>
+        <p>Everything is also on one plain page:</p>
+        <p><a class="ui-btn primary big" href="recruiter.html">Open the recruiter view</a></p>
+        <p><a class="ui-btn" href="assets/Resume_Isaac_Moreno.pdf">Resume (PDF)</a></p>
+      </div></div>
+    </div>
   </main>
   <noscript><p class="noscript">This game needs JavaScript. <a href="recruiter.html">View the plain portfolio instead.</a></p></noscript>
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/game.js"></script>
 </body>
 </html>
