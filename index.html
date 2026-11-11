@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Isaac Moreno | Playable Portfolio (UTEP Computer Science)</title>
+  <meta name="description" content="Isaac Moreno, UTEP Computer Science senior with a Minor in Mathematics (graduating Dec 2026). Explore a blocky, game-style UTEP campus to see his projects, research, experience, and resume.">
+  <meta name="theme-color" content="#1f4a8a">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Isaac Moreno | Playable Portfolio">
+  <meta property="og:description" content="Walk a blocky UTEP campus to explore Isaac Moreno's projects, research, and resume. Or skip straight to the plain view.">
+  <meta property="og:image" content="assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="modulepreload" href="js/main.js">
+</head>
+<body>
+  <a class="skip-link" href="recruiter.html">Skip the game: view projects</a>
+  <header class="topbar">
+    <a class="brand" href="recruiter.html" aria-label="Isaac Moreno, plain portfolio view"><span class="brand-block" aria-hidden="true"></span><span class="brand-text">Isaac Moreno</span></a>
+    <nav aria-label="Portfolio sections">
+      <button class="nav-btn" data-open="projects">Projects</button>
+      <button class="nav-btn" data-open="map">Map</button>
+      <button class="nav-btn" data-open="resume">Resume</button>
+      <button class="nav-btn" data-open="about">About Me</button>
+      <button class="nav-btn" data-open="contact">Contact</button>
+    </nav>
+    <a class="skip-btn" href="recruiter.html">Skip the game: view projects</a>
+  </header>
+
+  <main>
+    <h1 class="sr-only">Isaac Moreno, playable portfolio</h1>
+    <canvas id="game" tabindex="0" aria-label="Game view of a blocky UTEP campus. Use the navigation buttons or the plain recruiter view for the same content."></canvas>
+
+    <button id="prompt" class="prompt" hidden></button>
+    <div id="dialog" class="dialog" hidden aria-live="polite"></div>
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+
+    <div class="hud">
+      <div id="xp" class="xp" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-labelledby="xp-label">
+        <span id="xp-level" class="xp-level">0</span>
+        <span class="xp-bar"><span id="xp-fill" class="xp-fill"></span></span>
+        <span id="xp-label" class="xp-label">0/10 landmarks visited</span>
+      </div>
+    </div>
+    <div class="toggles" role="group" aria-label="Settings">
+      <button id="t-time" class="mc-btn small">Time: Day</button>
+      <button id="t-season" class="mc-btn small">Season: Summer</button>
+      <button id="t-sound" class="mc-btn small" aria-pressed="false">Sound: Off</button>
+      <button id="t-motion" class="mc-btn small" aria-pressed="false">Motion: Full</button>
+      <button id="t-help" class="mc-btn small">Help (H)</button>
+    </div>
+    <canvas id="minimap" class="minimap" width="200" height="144" aria-hidden="true"></canvas>
+
+    <div class="dpad" aria-label="Touch controls">
+      <div class="pad">
+        <button data-pad="up" aria-label="Up" class="pad-up">&#9650;</button>
+        <button data-pad="left" aria-label="Left" class="pad-left">&#9664;</button>
+        <button data-pad="right" aria-label="Right" class="pad-right">&#9654;</button>
+        <button data-pad="down" aria-label="Down" class="pad-down">&#9660;</button>
+      </div>
+      <div class="ab">
+        <button data-pad="b" aria-label="Swing pickaxe" class="pad-b">B</button>
+        <button data-pad="a" aria-label="Interact" class="pad-a">A</button>
+      </div>
+    </div>
+
+    <div id="panel-wrap" class="panel-wrap" hidden>
+      <div id="panel" class="panel gui" role="dialog" aria-modal="true" aria-labelledby="panel-title">
+        <div class="panel-head"><h2 id="panel-title">Panel</h2><button id="panel-close" class="mc-btn small close" aria-label="Close panel">X</button></div>
+        <div id="panel-body" class="panel-body"></div>
+      </div>
+    </div>
+
+    <section id="intro" class="intro" aria-labelledby="intro-title">
+      <div class="intro-card">
+        <p class="intro-kicker">A playable portfolio</p>
+        <h2 id="intro-title">ISAAC MORENO</h2>
+        <p class="intro-sub">Computer Science senior at UTEP, Minor in Mathematics. Graduating Dec 2026.</p>
+        <div class="intro-btns">
+          <button id="intro-start" class="mc-btn big primary">Start exploring</button>
+          <a class="mc-btn big" href="recruiter.html">Skip the game: view projects</a>
+        </div>
+        <p class="intro-hint touch-hint">Use the pad to walk. <kbd>A</kbd> enters buildings, <kbd>B</kbd> swings your pick.</p>
+        <p class="intro-hint keys-hint"><kbd>WASD</kbd> walk &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>E</kbd> enter &nbsp; <kbd>H</kbd> help</p>
+        <p class="intro-fine">Minecraft-inspired fan art style. Not affiliated with Mojang, Microsoft, or UTEP.</p>
+      </div>
+    </section>
+  </main>
+  <noscript><p class="noscript">This game needs JavaScript. <a href="recruiter.html">View the plain portfolio instead.</a></p></noscript>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
