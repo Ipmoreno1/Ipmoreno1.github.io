@@ -21,6 +21,20 @@ export const PROFILE = {
   github: "https://github.com/Ipmoreno1",
   resumePdf: "assets/Resume_Isaac_Moreno.pdf",
   siteUrl: "https://ipmoreno1.github.io/",
+  role: "Full-stack builder",
+};
+
+// The MinerDex (About me card). Short, factual copy pulled from the resume.
+export const DEX = {
+  school: "University of Texas at El Paso",
+  tagline: "Full-stack builder, testing researcher.",
+  degree: "B.S. Computer Science · Minor in Mathematics",
+  bio: "I'm a CS senior at UTEP graduating in December 2026. I built Moreno Captures for my photography business and ESPN Hub, a multi-sport stats dashboard, and this semester I'm studying whether Javadoc helps LLMs write better Java unit tests. Have a look around.",
+  type: "Builder",
+  secondType: "Researcher",
+  year: "Senior",
+  graduation: "Dec 2026",
+  selected: ["moreno-captures", "espn-hub", "javadoc-llm-tests"],
 };
 
 export const ABOUT = [
@@ -44,6 +58,7 @@ export const CATEGORIES = ["All", "Web", "Data", "AI/ML", "Research", "Testing",
 export const PROJECTS = [
   {
     id: "moreno-captures",
+    tag: "Full-stack app",
     title: "Moreno Captures",
     icon: "camera",
     dates: "Feb 2026 - Present",
@@ -63,6 +78,7 @@ export const PROJECTS = [
   },
   {
     id: "espn-hub",
+    tag: "Web dashboard",
     title: "ESPN Hub",
     icon: "trophy",
     dates: "Mar 2026",
@@ -81,6 +97,7 @@ export const PROJECTS = [
   },
   {
     id: "code-valkyrie",
+    tag: "Hackathon",
     title: "Code Valkyrie",
     icon: "shield",
     dates: "Oct 2025",
@@ -99,6 +116,7 @@ export const PROJECTS = [
   },
   {
     id: "javadoc-llm-tests",
+    tag: "Research, in progress",
     title: "Does Documentation Help?",
     icon: "quill",
     dates: "Fall 2026 (in progress)",
@@ -119,6 +137,9 @@ export const PROJECTS = [
   },
   {
     id: "disney-photopass",
+    tag: "Disney College Program",
+    role: "Cast Member / PhotoPass Photographer",
+    dexLine: "200+ guest photos per shift at Walt Disney World.",
     title: "Disney PhotoPass",
     icon: "castle",
     dates: "Jun 2024 - Jan 2025",
@@ -137,6 +158,9 @@ export const PROJECTS = [
   },
   {
     id: "clear-view-realty",
+    tag: "Real estate",
+    role: "Real Estate Agent",
+    dexLine: "Pricing, negotiations, and contracts for El Paso clients.",
     title: "Clear View Realty",
     icon: "house",
     dates: "Jun 2021 - Jun 2023",
@@ -154,6 +178,7 @@ export const PROJECTS = [
   },
   {
     id: "this-site",
+    tag: "Personal project",
     title: "This site: a playable portfolio",
     icon: "map",
     dates: "Nov 2026",

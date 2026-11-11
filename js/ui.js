@@ -1,5 +1,5 @@
-// ui.js : HUD, signs, toasts and every panel (Dig Log, project detail, landmarks, map, Miner Card, contact, help, dialogue).
-import { PROFILE, ABOUT, EDUCATION, PROJECTS, EXPERIENCE_IDS, SKILLS, INTERESTS, LANDMARKS, CAMPUS_FACTS, PETE_TALK, SITE } from "./data.js";
+// ui.js : HUD, signs, toasts and every panel (Dig Log, project detail, landmarks, map, MinerDex, contact, help, dialogue).
+import { PROFILE, DEX, ABOUT, EDUCATION, PROJECTS, EXPERIENCE_IDS, SKILLS, INTERESTS, LANDMARKS, CAMPUS_FACTS, PETE_TALK, SITE } from "./data.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -42,7 +42,7 @@ export const UI = {
     document.addEventListener("pointerdown", (e) => { if (!wm.hidden && !e.target.closest("#world-menu, #world-btn")) UI.toggleWorld(false); });
     syncWorld();
     // profile portrait
-    const pc = $("#portrait"); const g = pc.getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(G.chars.isaac.portrait, 0, 0);
+    const pc = $("#portrait"); pc.width = pc.height = 80; const g = pc.getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(G.chars.isaac.portrait, 0, 0, 80, 80);
   },
   isOpen: () => !$("#modal-wrap").hidden,
   toggleWorld(force) { const wm = $("#world-menu"); const show = force ?? wm.hidden; wm.hidden = !show; $("#world-btn").setAttribute("aria-expanded", String(show)); if (show) $("#opt-time").focus(); },
@@ -77,9 +77,11 @@ export const UI = {
       if (s.chip) { const c = document.createElement("span"); c.className = "chip"; if (s.chip.m) { const i = document.createElement("i"); i.textContent = s.chip.m; c.appendChild(i); } c.appendChild(document.createTextNode(s.chip.t)); d.appendChild(c); }
       const b = document.createElement("b"); b.textContent = s.t; d.appendChild(b); box.appendChild(d); return { el: d, ...s };
     });
+    UI.measureSigns();
   },
+  measureSigns() { for (const s of UI._signs || []) { s.el.style.display = ""; s.w = s.el.offsetWidth; s.h = s.el.offsetHeight; } },
   placeSigns(toScreen) {
-    for (const s of UI._signs || []) { const [x, y] = toScreen(s.x, s.y); const vis = x > -200 && y > -60 && x < innerWidth + 200 && y < innerHeight + 60; s.el.style.display = vis ? "" : "none"; if (vis) s.el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`; }
+    for (const s of UI._signs || []) { const [x, y] = toScreen(s.x, s.y); const vis = x > -200 && y > -60 && x < innerWidth + 200 && y < innerHeight + 60; s.el.style.display = vis ? "" : "none"; if (vis) s.el.style.transform = `translate(${Math.round(x - s.w / 2)}px, ${Math.round(y - s.h)}px)`; }
   },
 };
 
@@ -172,7 +174,7 @@ const VIEWS = {
   landmark(id) {
     const l = LM[id]; const type = l.panel?.type; const here = PROJECTS.filter((p) => p.landmark === id);
     let body = "";
-    if (type === "about") body = `<div class="feature"><div><p class="eyebrow">Here</p><h3 class="h3">Meet Isaac</h3><p>${esc(ABOUT[0])}</p></div><button class="btn primary" data-act="open" data-id="about" autofocus>Open my Miner Card ▶</button></div>`;
+    if (type === "about") body = `<div class="feature"><div><p class="eyebrow">Here</p><h3 class="h3">Meet Isaac</h3><p>${esc(ABOUT[0])}</p></div><button class="btn primary" data-act="open" data-id="about" autofocus>Open my MinerDex ▶</button></div>`;
     else if (type === "resume") body = `<div class="feature"><div><p class="eyebrow">Here</p><h3 class="h3">Resume</h3><p>${esc(EDUCATION.degree)}, ${esc(EDUCATION.minor)}. ${esc(EDUCATION.school)}. ${esc(EDUCATION.dates)}.</p></div><a class="btn primary" href="${esc(PROFILE.resumePdf)}" target="_blank" rel="noopener" autofocus>Open resume PDF ↗</a></div>
       <h3 class="h3">On the resume</h3><div class="grid2">${sorted().filter((p) => p.id !== "this-site").map((p) => card(p, { short: true })).join("")}</div>`;
     else if (type === "skills") body = `<p class="eyebrow">Here</p><h3 class="h3">Tools in the pack</h3>${skillsBlock()}<p class="muted small">Interests: ${INTERESTS.map(esc).join(" · ")}</p>`;
@@ -190,32 +192,41 @@ const VIEWS = {
     const thumbs = { main: thumb("main"), athletics: thumb("athletics") };
     const cur = G.state.areaId;
     const areaCard = (aid, desc) => `<div class="acard${aid === cur ? " here" : ""}"><img src="${thumbs[aid]}" alt="Overview of ${AREA_NAME[aid]}" width="360" height="240"><div class="ac-body"><h3 class="h3">${AREA_NAME[aid]}</h3><p class="muted small">${desc}</p>${aid === cur ? `<span class="here-tag">You are here</span>` : `<button class="btn" data-act="bus" data-id="${aid}">Take the bus ▶</button>`}</div></div>`;
-    const places = (aid) => Object.keys(AREA_OF).filter((k) => AREA_OF[k] === aid).map((k) => `<button class="place" data-act="go" data-id="${k}"><span class="pl-name">${esc(LM[k].name)}</span><span class="pl-theme">${esc(THEME[k])}</span><span aria-hidden="true">▶</span></button>`).join("");
+    const places = (aid) => Object.keys(AREA_OF).filter((k) => AREA_OF[k] === aid).map((k) => `<button class="place" data-act="go" data-id="${k}"><span class="pl-star" aria-hidden="true">★</span><span class="pl-name">${esc(LM[k].name)}</span><span class="pl-theme">${esc(THEME[k])}</span><span aria-hidden="true">▶</span></button>`).join("");
     return {
       crumb: "EL PASO / MAP", title: "Map",
       html: `<p class="eyebrow">2 areas · 10 landmarks</p><h2 class="h1" id="modal-title">Explore campus.</h2><p>Main Campus holds the experience, projects, research and resume. Ride the Sun Metro to the Sun Bowl side for ESPN Hub, skills and contact. Stylized, not to scale.</p>
       <div class="grid2">${areaCard("main", "Centennial Plaza, the Library, the Union, CCSB, Engineering, the Museum and the Lhakhang")}${areaCard("athletics", "Sun Bowl Stadium, the Don Haskins Center and the Mining Minds sculpture")}</div>
-      <h3 class="sec">Main Campus · places</h3><div class="grid2">${places("main")}</div>
-      <h3 class="sec">Sun Bowl & Athletics · places</h3><div class="grid2">${places("athletics")}</div>`,
+      <h3 class="sec">Main Campus · Places</h3><p class="note">Choose a place to walk straight there.</p><div class="grid2">${places("main")}</div>
+      <h3 class="sec">Sun Bowl & Athletics · Places</h3><div class="grid2">${places("athletics")}</div>`,
     };
   },
   about() {
     const exp = EXPERIENCE_IDS.map((id) => PROJECTS.find((p) => p.id === id));
-    const work = PROJECTS.filter((p) => !EXPERIENCE_IDS.includes(p.id));
+    const work = DEX.selected.map((id) => PROJECTS.find((p) => p.id === id));
+    const xcard = (p) => `<button class="dexc" data-act="project" data-id="${p.id}"><span class="dx-mono" aria-hidden="true">${MONO[p.id]}</span><span class="dx-body"><small>${esc(p.dates)}</small><strong>${esc(p.title)}</strong><em>${esc(p.role || p.kind)}</em><span class="dx-sum">${esc(p.dexLine || p.summary)}</span></span><span class="dx-go" aria-hidden="true">↗</span></button>`;
+    const wcard = (p) => `<button class="dexc" data-act="project" data-id="${p.id}"><span class="dx-mono" aria-hidden="true">${MONO[p.id]}</span><span class="dx-body"><small>${esc(p.tag)}</small><strong>${esc(SHORT[p.id] || p.title)}</strong><span class="dx-stack">${p.stack.slice(0, 3).map(esc).join(" · ")}</span></span><span class="dx-go" aria-hidden="true">↗</span></button>`;
+    const core = SKILLS[0].items, more = [...SKILLS[1].items, ...SKILLS[3].items.slice(0, 3), SKILLS[2].items[1]];
     return {
-      crumb: "MINER CARD", title: "About Isaac",
-      html: `<div class="mcard"><canvas id="mc-portrait" width="64" height="64" aria-hidden="true"></canvas>
-        <div class="mc-main"><p class="eyebrow">${esc(EDUCATION.school)}</p><h2 class="h1" id="modal-title">${esc(PROFILE.fullName)}</h2><p class="role">${esc(PROFILE.headline)}.</p><p class="small">${esc(EDUCATION.degree)} · ${esc(EDUCATION.minor)}</p></div>
-        <div class="mc-side"><div class="badges"><span class="badge">Class: Full-stack builder</span><span class="badge alt">Focus: Testing research</span></div>
-        <div class="stats"><div class="stat"><span>Year</span><b>Senior</b></div><div class="stat"><span>Expected graduation</span><b>Dec 2026</b></div></div></div>
-        <div class="mc-bio">${ABOUT.map((a) => `<p>${esc(a)}</p>`).join("")}</div></div>
-      <div class="btnrow wide"><button class="btn primary" data-act="close">Explore campus ▶</button><button class="btn" data-act="open" data-id="log">View projects</button><a class="btn" href="${esc(PROFILE.resumePdf)}" target="_blank" rel="noopener">Full resume ↗</a></div>
-      ${controlsStrip()}
-      <h3 class="sec">Experience</h3><div class="grid2">${exp.map((p) => card(p, { short: true })).join("")}</div>
-      <h3 class="sec">Selected work</h3><div class="grid3">${work.map((p) => card(p, { short: true })).join("")}</div>
-      <div class="moves"><b>Tools in the pack:</b> ${SKILLS.slice(0, 2).flatMap((s) => s.items).map(esc).join(" · ")}<br><b>Also:</b> ${SKILLS.slice(2).flatMap((s) => s.items).map(esc).join(" · ")}</div>
-      ${contactBlock()}<p class="fine">${esc(SITE.footer)} Not an official UTEP site.</p>`,
-      after: () => { const g = $("#mc-portrait").getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(G.chars.isaac.portrait, 0, 0, 64, 64); },
+      crumb: "MINERDEX", title: "MinerDex: About Isaac",
+      html: `<section class="dex-hero" aria-labelledby="modal-title">
+        <div class="dex-pic"><canvas id="mc-portrait" width="80" height="80" aria-hidden="true"></canvas></div>
+        <div class="dex-id"><p class="dex-eyebrow">${esc(DEX.school)}</p><h2 class="dex-name" id="modal-title">${esc(PROFILE.name)}</h2><p class="dex-tag">${esc(DEX.tagline)}</p><p class="dex-deg">${esc(DEX.degree)}</p></div>
+        <div class="dex-side"><div class="dex-types"><span class="type t1"><i>TYPE:</i> ${esc(DEX.type)}</span><span class="type t2"><i>SECOND TYPE:</i> ${esc(DEX.secondType)}</span></div>
+          <div class="dex-stats"><div><i>YEAR:</i><b>${esc(DEX.year)}</b></div><div><i>EXPECTED GRADUATION:</i><b>${esc(DEX.graduation)}</b></div></div></div>
+        <p class="dex-bio">${esc(DEX.bio)}</p>
+      </section>
+      <div class="dex-actions"><button class="btn primary" data-act="close" autofocus>Explore campus <span aria-hidden="true">▸</span></button><button class="btn" data-act="open" data-id="log">View projects</button><a class="btn" href="${esc(PROFILE.resumePdf)}" target="_blank" rel="noopener">Full resume PDF ↗</a></div>
+      <p class="dex-controls"><span><kbd>WASD</kbd> / pad <b>Move</b></span><span>Hold <kbd>Run</kbd> or <kbd>Shift</kbd></span><span><b>Interact</b> <kbd>E</kbd></span><span><kbd>P</kbd> Dig Log</span><span><kbd>M</kbd> Map</span></p>
+      <h3 class="dex-h">Experience</h3><div class="dex-grid2">${exp.map(xcard).join("")}</div>
+      <div class="dex-hrow"><h3 class="dex-h">Selected work</h3><button class="dex-link" data-act="open" data-id="log">All work <span aria-hidden="true">▶</span></button></div>
+      <div class="dex-grid3">${work.map(wcard).join("")}</div>
+      <div class="dex-edu"><b>Education</b><span>${esc(DEX.degree)} · ${esc(EDUCATION.school)} · Expected graduation ${esc(DEX.graduation)}</span></div>
+      <div class="dex-moves"><span><b>MOVES:</b> ${core.map(esc).join(" · ")}</span><span>${more.map(esc).join(" · ")}</span></div>
+      <div class="dex-talk"><div><h3 class="dex-h">Let's talk.</h3><p>Open to ${esc(PROFILE.lookingFor.toLowerCase())} · ${esc(PROFILE.location)}</p></div>
+        <div class="dex-btns"><a class="btn sm" href="mailto:${esc(PROFILE.email)}">Email me ↗</a><button class="btn sm" data-act="copy">Copy email</button>${link(PROFILE.github, "GitHub", "btn sm")}${link(PROFILE.linkedin, "LinkedIn", "btn sm")}</div></div>
+      <p class="fine">${esc(SITE.footer)} Not an official UTEP site.</p>`,
+      after: () => { const c = $("#mc-portrait"); const k = Math.max(2, Math.ceil(2 * (window.devicePixelRatio || 1))); c.width = c.height = 40 * k; const g = c.getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(G.chars.isaac.portrait, 0, 0, 40 * k, 40 * k); },
     };
   },
   contact() {
@@ -223,11 +234,11 @@ const VIEWS = {
   },
   help() {
     const rows = [["Move", "WASD, arrow keys, or the direction pad."], ["Run", "Hold Shift, or toggle Run."], ["Talk", "Walk up to someone with a ! and press E."], ["Places", "Press E near a building, or use the yellow button."], ["Dig Log", "Press P to see every project and job."], ["Map", "Press M. Take the bus between areas."], ["Contact", "Press C."], ["Close", "Press Escape, or select Close."]];
-    return { crumb: "HELP", title: "How to play", html: `<h2 class="h1" id="modal-title">How to play.</h2><p>Explore the UTEP campus. Each landmark holds part of Isaac's portfolio. The Sun Metro bus runs between Main Campus and the Sun Bowl side.</p>
+    return { crumb: "HELP", title: "How to play", html: `<div class="narrow"><h2 class="h1" id="modal-title">How to play.</h2><p>Explore the UTEP campus. Each landmark holds part of Isaac's portfolio. The Sun Metro bus runs between Main Campus and the Sun Bowl side.</p>
       <table class="help"><tbody>${rows.map(([a, b]) => `<tr><th scope="row">${a}</th><td>${b}</td></tr>`).join("")}</tbody></table>
       <p class="muted small">World options change the time of day, the weather, sound and zoom.</p>
       <label class="check"><input type="checkbox" id="reduce-cb" ${G.state.reduce ? "checked" : ""}> Reduce animation</label>
-      <p class="fine">${esc(SITE.footer)} Not an official UTEP site. All art is original. <a href="recruiter.html">Skip the game</a>.</p>` };
+      <p class="fine">${esc(SITE.footer)} Not an official UTEP site. All art is original. <a href="recruiter.html">Skip the game</a>.</p></div>` };
   },
   npc(o) {
     const pete = o.id === "pete";
@@ -235,7 +246,7 @@ const VIEWS = {
       crumb: "", title: o.name, head: "npc",
       html: `<div class="npc-top"><canvas id="npc-portrait" width="64" height="64" aria-hidden="true"></canvas><div><p class="eyebrow light">Talking with</p><h2 class="h2" id="modal-title">${esc(o.name)}</h2></div></div>
       <p id="npc-text" aria-live="polite">${esc(pete ? PETE_TALK.greet : o.line)}</p>
-      ${pete ? `<h3 class="h3">Ask Pete</h3><div class="grid3">${PETE_TALK.choices.map((c, i) => `<button class="choice" data-act="ask" data-id="${i}" ${i === 0 ? "autofocus" : ""}>${esc(c.q)} <span aria-hidden="true">▶</span></button>`).join("")}</div><div class="btnrow"><button class="btn ghost" data-act="open" data-id="about">Miner Card ▶</button><button class="btn ghost" data-act="open" data-id="log">Dig Log ▶</button></div>` : `<div class="btnrow"><button class="btn" data-act="close" autofocus>Thanks!</button></div>`}`,
+      ${pete ? `<h3 class="h3">Ask Pete</h3><div class="grid3">${PETE_TALK.choices.map((c, i) => `<button class="choice" data-act="ask" data-id="${i}" ${i === 0 ? "autofocus" : ""}>${esc(c.q)} <span aria-hidden="true">▶</span></button>`).join("")}</div><div class="btnrow"><button class="btn ghost" data-act="open" data-id="about">MinerDex ▶</button><button class="btn ghost" data-act="open" data-id="log">Dig Log ▶</button></div>` : `<div class="btnrow"><button class="btn" data-act="close" autofocus>Thanks!</button></div>`}`,
       after: () => { const g = $("#npc-portrait").getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(o.portrait, 0, 0, 64, 64); },
     };
   },

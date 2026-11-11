@@ -206,17 +206,32 @@ function updatePlate() {
 let scale = 2, vw = 0, vh = 0; const [view, vg] = A.mk(8, 8); const [lightC, lg] = A.mk(8, 8);
 let camX = 0, camY = 0, snapCam = true;
 let dpr = 1;
-function autoScale() { const w = screen.width, h = screen.height; return Math.max(1, Math.min(6, Math.round(Math.min(w / 900, h / 520) * 2) / 2)); }
-const [bufC, bufG] = A.mk(8, 8);
+// Crisp pixels: the world is always drawn at a whole number of DEVICE pixels per art pixel.
+// cssScale is the target size of one art pixel in CSS px (2 on desktop, 1.5 on phones);
+// the device scale is that times devicePixelRatio, rounded to an integer.
+function cssTarget() { const w = innerWidth, h = innerHeight; return w < 600 ? 1.5 : w >= 2400 && h >= 1300 ? 3 : 2; }
+function autoScale() { return Math.max(1, Math.round(cssTarget() * dpr)); }
 function resize() {
-  dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1)); const dk = document.getElementById("dock"), stp = document.getElementById("strip"); if (dk && stp) stp.style.height = Math.max(0, Math.round(dk.offsetHeight + 10 - 16)) + "px"; const stripH = document.getElementById("strip")?.offsetHeight || 0; const cssH = Math.max(200, innerHeight - stripH); screen.style.height = cssH + "px"; screen.width = Math.floor(innerWidth * dpr); screen.height = Math.floor(cssH * dpr);
-  scale = Math.max(1, Math.min(6, state.zoom || Math.max(autoScale(), Math.round(dpr * 2) / 2)));
+  dpr = Math.max(1, Math.min(4, window.devicePixelRatio || 1));
+  const dk = document.getElementById("dock"), stp = document.getElementById("strip");
+  if (dk && stp) stp.style.height = Math.max(0, Math.round(dk.offsetHeight + 10 - 16)) + "px";
+  const stripH = stp?.offsetHeight || 0; const cssH = Math.max(200, innerHeight - stripH);
+  screen.width = Math.round(innerWidth * dpr); screen.height = Math.round(cssH * dpr);
+  // css size is exactly backing / dpr so the browser never resamples the canvas
+  screen.style.width = screen.width / dpr + "px"; screen.style.height = screen.height / dpr + "px";
+  const maxS = Math.max(2, Math.round(6 * dpr));
+  scale = state.zoom ? Math.max(1, Math.min(maxS, Math.round(state.zoom * dpr))) : autoScale();
   vw = Math.ceil(screen.width / scale) + 2; vh = Math.ceil(screen.height / scale) + 2;
   view.width = vw; view.height = vh; lightC.width = vw; lightC.height = vh;
   vg.imageSmoothingEnabled = false; sg.imageSmoothingEnabled = false; snapCam = true;
+  UI.measureSigns && UI.measureSigns();
 }
 addEventListener("resize", resize);
-export function setZoom(d) { const cur = state.zoom || autoScale(); state.zoom = Math.max(1, Math.min(6, cur + d * 0.5)); store.set("zoom", state.zoom); resize(); UI.toast("Zoom " + state.zoom + "x" + (state.zoom === autoScale() ? " (default)" : "")); }
+export function setZoom(d) {
+  const maxS = Math.max(2, Math.round(6 * dpr)); const ns = Math.max(1, Math.min(maxS, scale + d));
+  state.zoom = ns === autoScale() ? 0 : ns / dpr; store.set("zoom", state.zoom); resize();
+  UI.toast("Zoom " + +(ns / dpr).toFixed(2) + "x" + (state.zoom === 0 ? " (default)" : ""));
+}
 
 function updateCam(dt) {
   const W = area.w * T, Hh = area.h * T; const sw = screen.width / scale, sh = screen.height / scale;
@@ -225,6 +240,8 @@ function updateCam(dt) {
   tx = Math.max(0, Math.min(W - sw, tx)); ty = Math.max(0, Math.min(Hh - sh + dockH * 0.6, ty));
   if (W < sw) tx = (W - sw) / 2; if (Hh < sh) ty = (Hh - sh) / 2;
   if (snapCam || state.reduce) { camX = tx; camY = ty; snapCam = false; } else { const k = 1 - Math.exp(-dt * 7); camX += (tx - camX) * k; camY += (ty - camY) * k; }
+  // quantize the camera to whole device pixels so nothing lands between pixels
+  camX = Math.round(camX * scale) / scale; camY = Math.round(camY * scale) / scale;
 }
 const rain = [], dust = [];
 let flash = 0, nextFlash = 6;
@@ -312,8 +329,7 @@ function render(dt) {
   if (target && target.kind === "landmark") { const l = target.obj; const a = 0.5 + Math.sin(t * 5) * 0.3; vg.fillStyle = `rgba(255,217,106,${a})`; vg.fillRect(Math.round(l.x - 9 - ix), Math.round(l.y - 2 - iy), 18, 1); vg.fillRect(Math.round(l.x - 7 - ix), Math.round(l.y + 1 - iy), 14, 1); }
   // blit
   sg.fillStyle = "#2b2420"; sg.fillRect(0, 0, screen.width, screen.height);
-  if (Number.isInteger(scale)) { sg.imageSmoothingEnabled = false; sg.drawImage(view, -Math.round(fx * scale), -Math.round(fy * scale), vw * scale, vh * scale); }
-  else { const up = Math.ceil(scale); if (bufC.width !== vw * up || bufC.height !== vh * up) { bufC.width = vw * up; bufC.height = vh * up; } bufG.imageSmoothingEnabled = false; bufG.drawImage(view, 0, 0, vw * up, vh * up); sg.imageSmoothingEnabled = true; sg.imageSmoothingQuality = "high"; sg.drawImage(bufC, -Math.round(fx * scale), -Math.round(fy * scale), vw * scale, vh * scale); }
+  sg.imageSmoothingEnabled = false; sg.drawImage(view, -Math.round(fx * scale), -Math.round(fy * scale), vw * scale, vh * scale);
 }
 function bubble(x, y) { vg.fillStyle = "#1e3a4a"; vg.fillRect(x - 3, y - 1, 7, 9); vg.fillStyle = "#fffbe6"; vg.fillRect(x - 2, y, 5, 7); vg.fillStyle = "#e0703a"; vg.fillRect(x, y + 1, 1, 3); vg.fillRect(x, y + 5, 1, 1); vg.fillStyle = "#1e3a4a"; vg.fillRect(x, y + 8, 1, 1); }
 function heart(x, y) { vg.fillStyle = "#e2455a"; for (const [a, b] of [[-2, 0], [-1, -1], [1, -1], [2, 0], [-2, 1], [-1, 0], [0, 0], [1, 0], [2, 1], [-1, 1], [0, 1], [1, 1], [-1, 2], [0, 2], [1, 2], [0, 3]]) vg.fillRect(x + a, y + b, 1, 1); vg.fillStyle = "#ffb3c0"; vg.fillRect(x - 1, y - 1 + 1, 1, 1); }
