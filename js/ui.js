@@ -15,6 +15,36 @@ const THEME = { plaza: "About me", union: "Experience: Disney PhotoPass and Clea
 const AREA_OF = { plaza: "main", union: "main", library: "main", ccsb: "main", engineering: "main", museum: "main", lhakhang: "main", sunbowl: "athletics", haskins: "athletics", pick: "athletics" };
 const AREA_NAME = { main: "Main Campus", athletics: "Sun Bowl & Athletics" };
 
+// Isaac's portrait. Preferred: the HD bust (assets/isaac-portrait-hd.png 256px, -hd@2x 512px for
+// 2x+ screens; isaac-portrait-hud.png 80px / -hud@2x 160px for the small HUD chip), drawn with
+// high-quality smoothing so it looks like the source art. Fallbacks: the 64x64 / 32x32 pixel
+// sprites (whole-number scale, smoothing off), then the in-code character portrait.
+const HI = (window.devicePixelRatio || 1) >= 1.5;
+const img = (src) => { const i = new Image(); i.decoding = "async"; i.src = src; return i; };
+const AV_HD = img(HI ? "assets/isaac-portrait-hd@2x.png" : "assets/isaac-portrait-hd.png");
+const AV_HUD = img(HI ? "assets/isaac-portrait-hud@2x.png" : "assets/isaac-portrait-hud.png");
+const AVATAR = img("assets/isaac-portrait.png");
+const AVATAR32 = img("assets/isaac-portrait-32.png");
+const AV_BG = "#d1e3d3"; // the portrait's mint background, used to pad the frame
+function drawPortrait(c) {
+  if (!c) return;
+  const css = c.clientWidth || +c.dataset.css || 40; const dpr = window.devicePixelRatio || 1; const dev = Math.round(css * dpr);
+  const ok = (im) => im.complete && im.naturalWidth > 0;
+  const g = c.getContext("2d");
+  const hd = css >= 96 ? AV_HD : AV_HUD;
+  const hdSrc = ok(hd) ? hd : ok(AV_HD) ? AV_HD : ok(AV_HUD) ? AV_HUD : null;
+  if (hdSrc) {
+    c.width = c.height = dev; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+    g.drawImage(hdSrc, 0, 0, dev, dev); return;
+  }
+  const big = ok(AVATAR) && dev >= 64, small = ok(AVATAR32);
+  const src = big ? AVATAR : small ? AVATAR32 : ok(AVATAR) ? AVATAR : null;
+  if (!src) { c.width = c.height = 80; g.imageSmoothingEnabled = false; g.drawImage(G.chars.isaac.portrait, 0, 0, 80, 80); return; }
+  const n = src.naturalWidth; const k = Math.max(1, Math.floor(dev / n));
+  c.width = c.height = dev; g.imageSmoothingEnabled = false;
+  g.fillStyle = AV_BG; g.fillRect(0, 0, dev, dev);
+  const o = Math.floor((dev - n * k) / 2); g.drawImage(src, o, o, n * k, n * k);
+}
 let G = null; let lastFocus = null; let history = [];
 const visited = new Set(JSON.parse(localStorage.getItem("utepx.visited") || "[]"));
 function markVisited(id) { if (!visited.has(id)) { visited.add(id); try { localStorage.setItem("utepx.visited", JSON.stringify([...visited])); } catch {} } }
@@ -42,7 +72,7 @@ export const UI = {
     document.addEventListener("pointerdown", (e) => { if (!wm.hidden && !e.target.closest("#world-menu, #world-btn")) UI.toggleWorld(false); });
     syncWorld();
     // profile portrait
-    const pc = $("#portrait"); pc.width = pc.height = 80; const g = pc.getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(G.chars.isaac.portrait, 0, 0, 80, 80);
+    drawPortrait($("#portrait")); const redraw = () => { drawPortrait($("#portrait")); const m = $("#mc-portrait"); if (m) drawPortrait(m); }; for (const i of [AV_HD, AV_HUD, AVATAR, AVATAR32]) i.addEventListener("load", redraw);
   },
   isOpen: () => !$("#modal-wrap").hidden,
   toggleWorld(force) { const wm = $("#world-menu"); const show = force ?? wm.hidden; wm.hidden = !show; $("#world-btn").setAttribute("aria-expanded", String(show)); if (show) $("#opt-time").focus(); },
@@ -64,7 +94,7 @@ export const UI = {
     $("#modal-body").innerHTML = v.html; $("#modal-head").className = v.head || "";
     $("#modal-wrap").hidden = false; $("#modal-body").scrollTop = 0;
     if (v.after) v.after();
-    ($("#modal-body [autofocus]") || $("#modal-close")).focus();
+    ($("#modal-body [autofocus]") || $("#modal-close")).focus({ preventScroll: true }); $("#modal-body").scrollTop = 0;
   },
   buildSigns(area) {
     const box = $("#signs"); box.innerHTML = "";
@@ -210,7 +240,7 @@ const VIEWS = {
     return {
       crumb: "MINERDEX", title: "MinerDex: About Isaac",
       html: `<section class="dex-hero" aria-labelledby="modal-title">
-        <div class="dex-pic"><canvas id="mc-portrait" width="80" height="80" aria-hidden="true"></canvas></div>
+        <div class="dex-pic"><canvas id="mc-portrait" width="128" height="128" data-css="128" aria-hidden="true"></canvas></div>
         <div class="dex-id"><p class="dex-eyebrow">${esc(DEX.school)}</p><h2 class="dex-name" id="modal-title">${esc(PROFILE.name)}</h2><p class="dex-tag">${esc(DEX.tagline)}</p><p class="dex-deg">${esc(DEX.degree)}</p></div>
         <div class="dex-side"><div class="dex-types"><span class="type t1"><i>TYPE:</i> ${esc(DEX.type)}</span><span class="type t2"><i>SECOND TYPE:</i> ${esc(DEX.secondType)}</span></div>
           <div class="dex-stats"><div><i>YEAR:</i><b>${esc(DEX.year)}</b></div><div><i>EXPECTED GRADUATION:</i><b>${esc(DEX.graduation)}</b></div></div></div>
@@ -226,7 +256,7 @@ const VIEWS = {
       <div class="dex-talk"><div><h3 class="dex-h">Let's talk.</h3><p>Open to ${esc(PROFILE.lookingFor.toLowerCase())} · ${esc(PROFILE.location)}</p></div>
         <div class="dex-btns"><a class="btn sm" href="mailto:${esc(PROFILE.email)}">Email me ↗</a><button class="btn sm" data-act="copy">Copy email</button>${link(PROFILE.github, "GitHub", "btn sm")}${link(PROFILE.linkedin, "LinkedIn", "btn sm")}</div></div>
       <p class="fine">${esc(SITE.footer)} Not an official UTEP site.</p>`,
-      after: () => { const c = $("#mc-portrait"); const k = Math.max(2, Math.ceil(2 * (window.devicePixelRatio || 1))); c.width = c.height = 40 * k; const g = c.getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(G.chars.isaac.portrait, 0, 0, 40 * k, 40 * k); },
+      after: () => drawPortrait($("#mc-portrait")),
     };
   },
   contact() {
