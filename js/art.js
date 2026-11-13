@@ -255,7 +255,7 @@ export function makeCharacter(spec) {
 // sheet of his bust-matched chibi). 4 directions x 4 frames, feet at ISAAC_FOOT.
 // Idle should use frame 1 (the standing pose); frames are step, stand, step, stand.
 export const ISAAC_W = 26, ISAAC_H = 46, ISAAC_FOOT = 44, ISAAC_COLS = 5;
-export const ISAAC_SHEET = "assets/isaac-walk.png?v=22";
+export const ISAAC_SHEET = "assets/isaac-walk.png?v=27";
 
 function sliceIsaacFrame(img, col, row) {
   const [c, g] = mk(ISAAC_W, ISAAC_H);
@@ -292,8 +292,44 @@ export function loadIsaac() {
   });
 }
 
+// Campus cat: grey with black spots and white paws. 27x25 sheet, 5 cols
+// (walk 0-3 + sit) x 4 rows (down, left, right, up). Feet near y=22.
+export const CAT_W = 27, CAT_H = 25, CAT_FOOT = 22, CAT_COLS = 5;
+export const CAT_SHEET = "assets/cat-walk.png?v=27";
 
-// Adobe the cat: 32x24, 4 directions, walk[4] and idle[4]. Feet near y=22.
+function sliceCatFrame(img, col, row) {
+  const [c, g] = mk(CAT_W, CAT_H);
+  g.imageSmoothingEnabled = false;
+  g.drawImage(img, col * CAT_W, row * CAT_H, CAT_W, CAT_H, 0, 0, CAT_W, CAT_H);
+  return c;
+}
+
+export function makeCatFromImage(img) {
+  const rows = { down: 0, left: 1, right: 2, up: 3 };
+  const fr = {
+    right: { walk: [], idle: [] }, left: { walk: [], idle: [] },
+    down: { walk: [], idle: [] }, up: { walk: [], idle: [] },
+    foot: CAT_FOOT, w: CAT_W, h: CAT_H,
+  };
+  for (const [dir, r] of Object.entries(rows)) {
+    for (let f = 0; f < 4; f++) fr[dir].walk.push(sliceCatFrame(img, f, r));
+    const sit = sliceCatFrame(img, 4, r);
+    fr[dir].idle = [sit, sit, sit, sit];
+  }
+  return fr;
+}
+
+export function loadCat() {
+  return new Promise((resolve, reject) => {
+    const im = new Image();
+    im.decoding = "async";
+    im.onload = () => resolve(makeCatFromImage(im));
+    im.onerror = () => reject(new Error("Failed to load " + CAT_SHEET));
+    im.src = CAT_SHEET;
+  });
+}
+
+// Procedural cat kept only as a reference; the site loads assets/cat-walk.png.
 export function makeCat() {
   const pal = { f: "#c4844a", F: "#8a5a32", L: "#e2b07a", b: "#f0d4b0", w: "#f7efe4", e: "#2a5a28", n: "#e8a0a0", k: "#1b1626", s: "#6a3a22" };
   const draw = (dir, mode, f) => {

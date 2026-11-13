@@ -19,7 +19,7 @@ export const PROFILE = {
   // GitHub: https://github.com/Ipmoreno1 (confirmed by Isaac, Nov 10, 2026; 0 public repos at the time).
   // Paste the real profile URL here once it is public and it will show up everywhere.
   github: "https://github.com/Ipmoreno1",
-  resumePdf: "assets/Resume_Isaac_Moreno.pdf?v=22",
+  resumePdf: "assets/Resume_Isaac_Moreno.pdf?v=27",
   siteUrl: "https://ipmoreno.dev/",
   role: "Full-stack builder",
 };
@@ -340,19 +340,19 @@ export const VISITORS = {
   lobo:    { name: "The Lobo (New Mexico)", short: "the Lobo", line: "Hey. I'm the Lobo, just over the state line from New Mexico. In a hurry? The Skip game button shows everything on one page." },
   mustang: { name: "The Mustang (SMU)", short: "the Mustang", line: "Hey. The Mustang, visiting from SMU. Press E next to a building or a host mascot to open Isaac's work." },
   owl:     { name: "The Owl (Rice)", short: "the Owl", line: "Hey. I'm the Owl, visiting from Rice. The library holds Isaac's resume if you want the one-page version." },
-  runner:  { name: "The Roadrunner (UTSA)", short: "the Roadrunner", line: "Hey. The Roadrunner, in from UTSA. Adobe the cat will trail you around campus if you start walking." },
+  runner:  { name: "The Roadrunner (UTSA)", short: "the Roadrunner", line: "Hey. The Roadrunner, in from UTSA. The cat will trail you around campus if you start walking." },
   wildcat: { name: "The Wildcat (Arizona)", short: "the Wildcat", line: "Hey. I'm the Wildcat, visiting from Arizona. The Don Haskins Center on the athletics side holds Isaac's skill tree." },
   panther: { name: "The Panther (Prairie View A&M)", short: "the Panther", line: "Hey. The Panther, in from Prairie View A&M. The Mining Minds sculpture on the Sun Bowl side is where you can send Isaac a note." },
 };
 
-// Adobe, the cat who follows you around.
+// The campus cat who follows you around. Not interactable.
 export const PET_TALK = {
-  name: "Adobe the Cat", short: "Adobe", title: "Ask Adobe",
-  greet: "Mrrp. Adobe is the campus cat who follows you around. Adobe keeps an eye on where you haven't been yet, and will purr if you pet them.",
+  name: "the cat", short: "the cat", title: "the cat",
+  greet: "The campus cat follows you around.",
   cards: [
-    { t: "Pet Adobe", s: "A good cat", a: "pet" },
+    { t: "The cat", s: "A good cat", a: "The campus cat follows you around." },
     { t: "Where next?", s: "Unvisited places", a: "next" },
-    { t: "Cat fact", s: "Campus companion", a: "Adobe is an original pixel cat made for this portfolio, named after the adobe brick you see all over El Paso." },
+    { t: "Cat fact", s: "Campus companion", a: "The campus cat is an original pixel cat made for this portfolio." },
   ],
 };
 

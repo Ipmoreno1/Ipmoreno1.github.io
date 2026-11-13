@@ -1,10 +1,10 @@
 // main.js : game loop, input, movement, camera, lighting, weather and the bus.
-import * as A from "./art.js?v=22";
-import { buildAreas } from "./world.js?v=22";
-import { LANDMARKS, MASCOTS, VISITORS, PET_TALK, QUEST } from "./data.js?v=22";
-import { loadMascots, portraitOf } from "./mascots.js?v=22";
-import { UI } from "./ui.js?v=22";
-import { Sound } from "./audio.js?v=22";
+import * as A from "./art.js?v=27";
+import { buildAreas } from "./world.js?v=27";
+import { LANDMARKS, MASCOTS, VISITORS, QUEST } from "./data.js?v=27";
+import { loadMascots, portraitOf } from "./mascots.js?v=27";
+import { UI } from "./ui.js?v=27";
+import { Sound } from "./audio.js?v=27";
 
 const T = A.T;
 const $ = (s) => document.querySelector(s);
@@ -19,13 +19,11 @@ const { art, areas } = buildAreas();
 const HOST_IDS = ["miner", "bear", "gator", "longhorn", "eagle"];
 const VISITOR_IDS = Object.keys(VISITORS);
 const chars = {};
-const cat = A.makeCat();
-const petPortrait = portraitOf(cat.down.idle[0], "#e8d4b0", 0, 0, -4);
+let cat = null;
 const NPC_NAMES = Object.fromEntries([
   ...HOST_IDS.map((id) => [id, MASCOTS[id].name]),
   ...VISITOR_IDS.map((id) => [id, VISITORS[id].name]),
 ]);
-const PET = PET_TALK.short;
 
 // ---------------------------------------------------------------- optional campus tour
 const Quest = {
@@ -71,7 +69,7 @@ const warmGlow = tintGlow("rgba(255,184,80,A)"), coolGlow = tintGlow("rgba(220,2
 
 // ---------------------------------------------------------------- entities
 const player = { x: 0, y: 0, dir: "down", dist: 0, moving: false, sprite: null, trail: [] };
-const pet = { x: 0, y: 0, dir: "right", frame: 0, moving: false, hop: 0 };
+const pet = { x: 0, y: 0, dir: "right", frame: 0, dist: 0, moving: false, hop: 0 };
 let npcs = [];
 let area = areas.main;
 function enterArea(id, at) {
@@ -108,7 +106,6 @@ document.querySelectorAll("[data-dir]").forEach((b) => {
 function stepNudge(dx, dy) { let n = 0; const id = setInterval(() => { touch.x = dx; touch.y = dy; if (++n > 8) { clearInterval(id); touch.x = touch.y = 0; } }, 30); }
 $("#run-btn").addEventListener("click", () => { runToggle = !runToggle; $("#run-btn").setAttribute("aria-pressed", String(runToggle)); $("#run-btn").classList.toggle("on", runToggle); });
 $("#act-btn").addEventListener("click", () => interact());
-$("#pet-btn").addEventListener("click", () => petBird());
 
 // ---------------------------------------------------------------- movement and collision
 function blocked(x, y) { // feet hitbox 10x6
@@ -144,7 +141,7 @@ function updatePet(dt) {
   const dx = tx - pet.x, dy = ty - pet.y, d = Math.hypot(dx, dy);
   pet.moving = d > 3;
   if (d > 140) { pet.x = tx; pet.y = ty; }
-  else if (pet.moving) { const sp = Math.min(d, (d > 30 ? 150 : 95) * dt); pet.x += (dx / d) * sp; pet.y += (dy / d) * sp; pet.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"); pet.frame += dt * 12; }
+  else if (pet.moving) { const sp = Math.min(d, (d > 30 ? 150 : 95) * dt); pet.x += (dx / d) * sp; pet.y += (dy / d) * sp; pet.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"); pet.dist = (pet.dist || 0) + sp; }
   else { pet.frame = 0; }
   if (pet.hop > 0) pet.hop -= dt;
 }
@@ -182,7 +179,6 @@ function findTarget() {
   let best = null, bd = 1e9;
   const consider = (kind, obj, d, r) => { if (d < r && d / r < bd) { bd = d / r; best = { kind, obj }; } };
   for (const n of npcs) consider("npc", n, Math.hypot(player.x - n.x, player.y - n.y), 34);
-  consider("pet", pet, Math.hypot(player.x - pet.x, player.y - pet.y) * 1.4 + 4, 40);
   for (const l of area.landmarks) consider("landmark", l, Math.hypot(player.x - l.x, player.y - l.y), l.r);
   if (area.bus) consider("bus", area.bus, Math.hypot(player.x - area.bus.x, player.y - area.bus.y), area.bus.r);
   return best;
@@ -190,20 +186,17 @@ function findTarget() {
 function targetLabel(t) {
   if (!t) return null;
   if (t.kind === "npc") return "Talk to " + (MASCOTS[t.obj.id] ? MASCOTS[t.obj.id].short : (VISITORS[t.obj.id] ? VISITORS[t.obj.id].short : NPC_NAMES[t.obj.id]));
-  if (t.kind === "pet") return "Talk to " + PET;
   if (t.kind === "bus") return "Ride the Sun Metro";
   return "Open " + t.obj.label;
 }
 function interact() {
   if (UI.isOpen() || state.busy) return;
-  const t = target; if (!t) { UI.toast("Nothing to interact with here. Walk up to a building, a person, or " + PET + "."); return; }
+  const t = target; if (!t) { UI.toast("Nothing to interact with here. Walk up to a building or a person."); return; }
   Sound.blip("open");
   if (t.kind === "npc") { const id = t.obj.id; if (MASCOTS[id]) { Quest.collect(id); UI.open("npc", { id, mascot: id, name: MASCOTS[id].name, portrait: chars[id].portrait }); } else UI.open("npc", { id, name: NPC_NAMES[id], portrait: chars[id].portrait, line: (VISITORS[id] && VISITORS[id].line) || "Hey. Nice campus, right?" }); }
-  else if (t.kind === "pet") UI.open("npc", { id: "pet", pet: true, name: PET_TALK.name, portrait: petPortrait });
   else if (t.kind === "bus") rideBus(state.areaId === "main" ? "athletics" : "main");
   else UI.open("landmark", t.obj.id);
 }
-function petBird() { pet.hop = 0.6; hearts.push({ x: pet.x, y: pet.y - 18, t: 0 }); Sound.blip("pet"); if (!UI.isOpen()) UI.toast(PET + " the cat leans into your hand and purrs, then does a happy little hop."); }
 const hearts = [];
 
 // ---------------------------------------------------------------- bus transition
@@ -326,7 +319,7 @@ function render(dt) {
   for (const d of all) {
     if (d.kind === "player") { drawChar(player, chars.isaac); }
     else if (d.kind === "npc") { drawChar(d.e, d.e.sprite); }
-    else if (d.kind === "pet") { const set = cat[pet.dir] || cat.right; let im; if (pet.moving) im = set.walk[Math.floor(pet.frame) % 4]; else { const seq = [0, 0, 0, 1, 1, 0, 0, 2, 0, 0, 3, 0, 3, 0]; im = set.idle[state.reduce ? 0 : seq[Math.floor(t * 3) % seq.length]]; } const hop = pet.hop > 0 ? -Math.round(Math.sin(pet.hop * 10) * 3 + 3) : 0; vg.drawImage(im, Math.round(pet.x - 16 - ix), Math.round(pet.y - 22 - iy + hop)); }
+    else if (d.kind === "pet") { const set = cat[pet.dir] || cat.right; const im = pet.moving ? set.walk[Math.floor((pet.dist || 0) / 5) % 4] : set.idle[0]; const hop = pet.hop > 0 ? -Math.round(Math.sin(pet.hop * 10) * 3 + 3) : 0; const fw = im.width, fh = cat.foot ?? (im.height - 2); vg.drawImage(im, Math.round(pet.x - (fw >> 1) - ix), Math.round(pet.y - fh - iy + hop)); }
     else { const o = d; const fi = o.frames.length > 1 && !state.reduce ? Math.floor(t * (o.rate || 1) + o.phase) % o.frames.length : 0; vg.drawImage(o.frames[fi], o.x - ix, o.y - iy); }
   }
   // weather tint (under the light pass)
@@ -391,8 +384,6 @@ function heart(x, y) { vg.fillStyle = "#e2455a"; for (const [a, b] of [[-2, 0], 
 // ---------------------------------------------------------------- DOM overlays that follow the world
 function updateOverlays() {
   const k = scale / dpr; UI.placeSigns((wx, wy) => [Math.round((wx - camX) * k), Math.round((wy - camY) * k)]);
-  const pb = $("#pet-btn"); const near = target && target.kind === "pet";
-  if (near && !UI.isOpen() && !state.busy) { pb.hidden = false; pb.style.transform = `translate(${Math.round((pet.x - camX) * k)}px, ${Math.round((pet.y - 30 - camY) * k)}px) translate(-50%, -100%)`; } else pb.hidden = true;
   const lab = targetLabel(target); const ab = $("#act-btn");
   ab.disabled = !lab; $("#act-label").textContent = lab || "Interact"; ab.setAttribute("aria-label", lab ? `Press E: ${lab}` : "Interact (nothing nearby)");
 }
@@ -450,7 +441,7 @@ export const Game = {
   },
   landmarkArea(id) { for (const [aid, a] of Object.entries(areas)) if (a.landmarks.some((x) => x.id === id)) return aid; return null; },
   teleport(aid, x, y) { if (aid !== state.areaId) enterArea(aid, { x, y }); else { player.x = x; player.y = y; } snapCam = true; },
-  interact, petBird, Quest, get target() { return target ? { kind: target.kind, id: target.obj.id || null, label: targetLabel(target) } : null; },
+  interact, Quest, get target() { return target ? { kind: target.kind, id: target.obj.id || null, label: targetLabel(target) } : null; },
   fps() { const a = fpsS.reduce((s, v) => s + v, 0) / Math.max(1, fpsS.length); return Math.round(1 / a); },
   get scale() { return scale; },
 };
@@ -460,9 +451,10 @@ $("#quest-reset")?.addEventListener("click", () => Quest.reset());
 $("#quest-again")?.addEventListener("click", () => Quest.showWin());
 
 async function start() {
-  const [isaac, mascots] = await Promise.all([A.loadIsaac(), loadMascots([...HOST_IDS, ...VISITOR_IDS])]);
+  const [isaac, mascots, catSheet] = await Promise.all([A.loadIsaac(), loadMascots([...HOST_IDS, ...VISITOR_IDS]), A.loadCat()]);
   chars.isaac = isaac;
   Object.assign(chars, mascots);
+  cat = catSheet;
   player.sprite = chars.isaac;
   UI.init(Game);
   Game.setReduce(state.reduce);

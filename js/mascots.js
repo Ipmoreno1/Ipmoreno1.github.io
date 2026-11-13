@@ -2,7 +2,7 @@
 // generated walk sheets in assets/mascots/. Each sheet is a 5-column x 4-row
 // pack (contact L, passing, contact R, passing, stand) in down, left, right, up.
 // Original drawings, no official logos or wordmarks.
-import { mk, shade } from "./art.js?v=22";
+import { mk, shade } from "./art.js?v=27";
 
 export const SPECIES = {
   miner:    { bg: "#f6c98a" },
@@ -23,7 +23,7 @@ export const SPECIES = {
 };
 
 export const MASCOT_IDS = Object.keys(SPECIES);
-export const mascotSheetUrl = (id) => `assets/mascots/${id}-walk.png?v=22`;
+export const mascotSheetUrl = (id) => `assets/mascots/${id}-walk.png?v=27`;
 
 function rect(g, x, y, w, h, c) { if (w > 0 && h > 0) { g.fillStyle = c; g.fillRect(x, y, w, h); } }
 
