@@ -254,8 +254,8 @@ export function makeCharacter(spec) {
 // Isaac's walk sprite comes from assets/isaac-walk.png (a keyed, quantized
 // sheet of his bust-matched chibi). 4 directions x 4 frames, feet at ISAAC_FOOT.
 // Idle should use frame 1 (the standing pose); frames are step, stand, step, stand.
-export const ISAAC_W = 39, ISAAC_H = 69, ISAAC_FOOT = 66;
-export const ISAAC_SHEET = "assets/isaac-walk.png?v=19";
+export const ISAAC_W = 29, ISAAC_H = 54, ISAAC_FOOT = 51;
+export const ISAAC_SHEET = "assets/isaac-walk.png?v=20";
 
 function sliceIsaacFrame(img, col, row) {
   const [c, g] = mk(ISAAC_W, ISAAC_H);
@@ -276,7 +276,7 @@ export function makeIsaacFromImage(img) {
   for (let y = 0; y < 32; y += 2) rect(pg, 0, y, 32, 1, shade(bg, -0.04));
   pg.imageSmoothingEnabled = false;
   // Head crop of the front standing frame (frame 1)
-  pg.drawImage(out.down[1], 3, 1, 33, 33, 0, 0, 32, 32);
+  pg.drawImage(out.down[1], 1, 1, 27, 28, 0, 0, 32, 32);
   out.portrait = pc;
   return out;
 }

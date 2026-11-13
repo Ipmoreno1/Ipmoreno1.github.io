@@ -2,7 +2,7 @@
 // Each mascot is a distinct original pixel character (48x56, feet at y=53) with its own
 // silhouette, outfit, school colors and a signature prop. 4 walk frames per direction
 // and a 64x64 dialog portrait. Nothing is traced from official mascot art or logos.
-import { mk, shade, outline } from "./art.js?v=19";
+import { mk, shade, outline } from "./art.js?v=20";
 
 export const MW = 48, MH = 56, MFOOT = 53;
 const px = (g, x, y, c) => { g.fillStyle = c; g.fillRect(x, y, 1, 1); };

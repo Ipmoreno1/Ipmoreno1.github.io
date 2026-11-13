@@ -1,10 +1,10 @@
 // main.js : game loop, input, movement, camera, lighting, weather and the bus.
-import * as A from "./art.js?v=19";
-import { buildAreas } from "./world.js?v=19";
-import { LANDMARKS, MASCOTS, VISITORS, PET_TALK, QUEST } from "./data.js?v=19";
-import { makeMascot, portraitOf } from "./mascots.js?v=19";
-import { UI } from "./ui.js?v=19";
-import { Sound } from "./audio.js?v=19";
+import * as A from "./art.js?v=20";
+import { buildAreas } from "./world.js?v=20";
+import { LANDMARKS, MASCOTS, VISITORS, PET_TALK, QUEST } from "./data.js?v=20";
+import { makeMascot, portraitOf } from "./mascots.js?v=20";
+import { UI } from "./ui.js?v=20";
+import { Sound } from "./audio.js?v=20";
 
 const T = A.T;
 const $ = (s) => document.querySelector(s);
@@ -314,7 +314,7 @@ function render(dt) {
   // shadows
   vg.fillStyle = "rgba(34,22,34,0.26)";
   for (const o of list) if (o.shadow) { vg.beginPath(); vg.ellipse(o.fx - ix + 2, o.fy - iy - 1, o.shadow[0], o.shadow[1], 0, 0, 7); vg.fill(); }
-  for (const en of ents) { vg.beginPath(); vg.ellipse(en.e.x - ix, en.e.y - iy - 1, en.kind === "pet" ? 7 : 10, 3, 0, 0, 7); vg.fill(); }
+  for (const en of ents) { vg.beginPath(); const sr = en.kind === "pet" ? 7 : en.kind === "player" ? 8 : 10; vg.ellipse(en.e.x - ix, en.e.y - iy - 1, sr, 3, 0, 0, 7); vg.fill(); }
   const all = list.concat(ents).sort((a, b) => a.sortY - b.sortY);
   for (const d of all) {
     if (d.kind === "player") { const f = player.moving ? Math.floor(player.dist / 7) % 4 : 1; drawChar(player, chars.isaac, f); }
