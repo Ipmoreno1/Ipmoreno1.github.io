@@ -1,10 +1,10 @@
 /* UTEP Pixel Campus, v10 "crisp" UI.
    Rules for crispness: Press Start 2P only at 8 / 16 / 24 px (its 8px grid lands on whole pixels),
    whole-pixel borders and offsets, no translate(-50%) centering (it causes half-pixel blur). */
-@font-face { font-family: "PressStart"; src: url("../assets/fonts/PressStart2P.woff2?v=19") format("woff2"); font-display: swap; }
-@font-face { font-family: "VT323"; src: url("../assets/fonts/VT323.woff2?v=19") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Regular.woff2?v=19") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Bold.woff2?v=19") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "PressStart"; src: url("../assets/fonts/PressStart2P.woff2?v=20") format("woff2"); font-display: swap; }
+@font-face { font-family: "VT323"; src: url("../assets/fonts/VT323.woff2?v=20") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Regular.woff2?v=20") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Bold.woff2?v=20") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
   --paper: #fafbea; --paper2: #f2f3e1; --card: #e8efdf; --card2: #dfe9d6; --cardline: #b3c7b3;
   --ink: #23364a; --text: #34505c; --muted: #5f7570; --frame: #29394d; --ring: #a4b5c3; --head: #e0e8e6; --headline: #879aa6;
@@ -312,7 +312,7 @@ html.reduce * { animation: none !important; transition: none !important; }
 }
 
 /* pixel cursors (original art, UTEP navy, cream and orange) */
-:root { --cur: url("../assets/cursors/miner-arrow.svg?v=19") 2 1, default; --cur-ptr: url("../assets/cursors/miner-pointer.svg?v=19") 2 1, pointer; }
+:root { --cur: url("../assets/cursors/miner-arrow.svg?v=20") 2 1, default; --cur-ptr: url("../assets/cursors/miner-pointer.svg?v=20") 2 1, pointer; }
 html, body, canvas { cursor: var(--cur); }
 a, button, [role="button"], select, summary, label[for], .mini, .tabs > *, .dpad button, .run, .act, .pcard, .chip, .place, .choice, .btn, .pet-btn, .pop button { cursor: var(--cur-ptr); }
 .act:disabled { cursor: var(--cur); }
