@@ -1,10 +1,10 @@
 /* UTEP Pixel Campus, v10 "crisp" UI.
    Rules for crispness: Press Start 2P only at 8 / 16 / 24 px (its 8px grid lands on whole pixels),
    whole-pixel borders and offsets, no translate(-50%) centering (it causes half-pixel blur). */
-@font-face { font-family: "PressStart"; src: url("../assets/fonts/PressStart2P.woff2?v=16") format("woff2"); font-display: swap; }
-@font-face { font-family: "VT323"; src: url("../assets/fonts/VT323.woff2?v=16") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Regular.woff2?v=16") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Bold.woff2?v=16") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "PressStart"; src: url("../assets/fonts/PressStart2P.woff2?v=19") format("woff2"); font-display: swap; }
+@font-face { font-family: "VT323"; src: url("../assets/fonts/VT323.woff2?v=19") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Regular.woff2?v=19") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "SpaceMono"; src: url("../assets/fonts/SpaceMono-Bold.woff2?v=19") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
   --paper: #fafbea; --paper2: #f2f3e1; --card: #e8efdf; --card2: #dfe9d6; --cardline: #b3c7b3;
   --ink: #23364a; --text: #34505c; --muted: #5f7570; --frame: #29394d; --ring: #a4b5c3; --head: #e0e8e6; --headline: #879aa6;
@@ -55,6 +55,26 @@ a { color: var(--primary); }
 .plate { padding: 8px 14px; text-align: center; display: flex; flex-direction: column; gap: 2px; min-width: 150px; }
 .plate b { font: 400 20px/20px var(--vt); letter-spacing: .08em; color: var(--ink); }
 .plate span { font-size: 16px; line-height: 14px; letter-spacing: .1em; color: var(--muted); }
+.hud-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: none; }
+.hud-right > * { pointer-events: auto; }
+.quest-hud { padding: 7px 10px 8px; min-width: 168px; max-width: 230px; display: flex; flex-direction: column; gap: 4px; }
+.quest-hud b { font: 400 16px/16px var(--vt); letter-spacing: .08em; color: var(--ink); }
+.qh-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; white-space: nowrap; }
+#quest-count { font: 400 16px/16px var(--vt); color: var(--primary2); }
+#quest-obj { font-size: 16px; line-height: 16px; color: var(--muted); }
+.qdots { display: flex; gap: 4px; }
+.qdot { width: 8px; height: 8px; border: 1px solid var(--frame); background: #e8e4d0; box-shadow: inset 0 0 0 1px #fff; }
+.qdot.on { background: #ff8200; border-color: #c46200; }
+.qh-actions { display: flex; gap: 6px; }
+.qh-actions .mini { min-height: 26px; padding: 3px 7px; font-size: 14px; }
+#quest-win { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(18, 36, 54, .55); }
+#quest-win[hidden] { display: none !important; }
+#quest-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; image-rendering: pixelated; }
+.quest-win-card { position: relative; z-index: 1; max-width: 420px; padding: 22px 22px 18px; text-align: center; }
+.quest-win-card h2 { font: 400 16px/24px var(--pix); color: var(--ink); margin: 0 0 10px; }
+.quest-win-card p { margin: 0 0 16px; }
+.quest-win-card .btnrow { justify-content: center; flex-wrap: wrap; gap: 8px; }
+.mcards.n5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 /* green frame under the world */
 #strip { position: fixed; left: 0; right: 0; bottom: 0; height: 96px; background: #4f9a5c; border-top: 3px solid #2f6b3c; box-shadow: inset 0 3px 0 #6ab276; z-index: 1; }
 /* dock: wide cream panel, tab row, then controls */
@@ -257,6 +277,11 @@ html.reduce * { animation: none !important; transition: none !important; }
   .hud-about { padding-left: 8px; margin-left: 0; font-size: 16px; gap: 4px; } .hud-about img { width: 12px; height: 12px; }
   .skipgame { font-size: 16px; line-height: 14px; padding: 4px 8px; } .skipgame .long { display: none; } .skipgame .short { display: inline; }
   .plate { min-width: 0; padding: 5px 8px; border-width: 2px; } .plate b { font-size: 16px; line-height: 16px; } .plate span { font-size: 14px; line-height: 14px; letter-spacing: 0; white-space: nowrap; }
+  .hud-right { gap: 6px; align-items: flex-end; max-width: 48%; }
+  .quest-hud { min-width: 0; max-width: 100%; padding: 5px 7px; border-width: 2px; }
+  .quest-hud b, #quest-count { font-size: 12px; line-height: 12px; }
+  #quest-obj { font-size: 14px; line-height: 14px; }
+  .qh-actions .mini { min-height: 22px; font-size: 12px; }
   #dock { bottom: max(7px, env(safe-area-inset-bottom)); width: calc(100% - 16px); padding: 7px 8px 9px; }
   .tabs { gap: 4px; padding-bottom: 7px; } .tabs > * { min-height: 36px; padding: 4px 2px; font-size: 16px; letter-spacing: 0; }
   .row { gap: 7px; padding-top: 8px; }
@@ -287,7 +312,7 @@ html.reduce * { animation: none !important; transition: none !important; }
 }
 
 /* pixel cursors (original art, UTEP navy, cream and orange) */
-:root { --cur: url("../assets/cursors/miner-arrow.svg?v=16") 2 1, default; --cur-ptr: url("../assets/cursors/miner-pointer.svg?v=16") 2 1, pointer; }
+:root { --cur: url("../assets/cursors/miner-arrow.svg?v=19") 2 1, default; --cur-ptr: url("../assets/cursors/miner-pointer.svg?v=19") 2 1, pointer; }
 html, body, canvas { cursor: var(--cur); }
 a, button, [role="button"], select, summary, label[for], .mini, .tabs > *, .dpad button, .run, .act, .pcard, .chip, .place, .choice, .btn, .pet-btn, .pop button { cursor: var(--cur-ptr); }
 .act:disabled { cursor: var(--cur); }
