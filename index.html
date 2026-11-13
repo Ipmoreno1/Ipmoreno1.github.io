@@ -10,17 +10,17 @@
 <meta property="og:type" content="website">
 <meta property="og:image" content="assets/og-image.png">
 <meta name="theme-color" content="#1e3a4a">
-<link rel="icon" href="assets/favicon.png?v=16">
-<link rel="preload" href="assets/fonts/PressStart2P.woff2?v=16" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/VT323.woff2?v=16" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/style.css?v=16">
+<link rel="icon" href="assets/favicon.png?v=19">
+<link rel="preload" href="assets/fonts/PressStart2P.woff2?v=19" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/VT323.woff2?v=19" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css?v=19">
 </head>
 <body tabindex="-1">
 <a class="skiplink" href="recruiter.html">Skip the game: plain recruiter view</a>
 <main id="game" aria-label="Playable campus">
   <canvas id="screen" role="img" aria-label="Pixel-art map of the UTEP campus"></canvas>
   <div id="signs" aria-hidden="true"></div>
-  <button id="pet-btn" class="pet-btn" hidden>♥ Pet Chispa</button>
+  <button id="pet-btn" class="pet-btn" hidden>♥ Pet Adobe</button>
 </main>
 
 <header class="hud-top">
@@ -28,11 +28,19 @@
   <div id="profile" class="card">
     <canvas id="portrait" width="80" height="80" data-css="40" aria-hidden="true"></canvas>
     <div class="who"><b>ISAAC MORENO</b><span>CS senior at UTEP</span></div>
-    <button id="about-btn" class="hud-about" aria-label="About me, open the MinerDex"><img src="assets/cursors/miner-pointer.svg?v=16" width="16" height="16" alt="">About me</button>
+    <button id="about-btn" class="hud-about" aria-label="About me, open the MinerDex"><img src="assets/cursors/miner-pointer.svg?v=19" width="16" height="16" alt="">About me</button>
   </div>
   <a id="skip-btn" class="card skipgame" href="recruiter.html"><span class="long">Skip game and explore projects</span><span class="short">Skip game</span> ▶</a>
   </div>
-  <div id="plate" class="card plate" aria-live="polite"><b id="plate-area">MAIN CAMPUS</b><span id="plate-sub">DESERT · DAYTIME</span></div>
+  <div class="hud-right">
+    <div id="plate" class="card plate" aria-live="polite"><b id="plate-area">MAIN CAMPUS</b><span id="plate-sub">DESERT · DAYTIME</span></div>
+    <div id="quest-hud" class="card quest-hud" aria-live="polite">
+      <div class="qh-row"><b>CAMPUS TOUR</b><span id="quest-count">0 of 5</span></div>
+      <div id="quest-dots" class="qdots" aria-hidden="true"></div>
+      <span id="quest-obj">Optional tour: talk to each host mascot.</span>
+      <div class="qh-actions"><button id="quest-reset" class="mini" type="button" hidden>Reset tour</button><button id="quest-again" class="mini" type="button" hidden>View reward</button></div>
+    </div>
+  </div>
 </header>
 
 <div id="strip" aria-hidden="true"></div>
@@ -40,7 +48,7 @@
   <div class="tabs">
     <button data-open="log" aria-keyshortcuts="P">DIG LOG</button>
     <button data-open="map" aria-keyshortcuts="M">MAP</button>
-    <a href="assets/Resume_Isaac_Moreno.pdf?v=16" target="_blank" rel="noopener" aria-label="Resume PDF, opens in a new tab">RESUME</a>
+    <a href="assets/Resume_Isaac_Moreno.pdf?v=19" target="_blank" rel="noopener" aria-label="Resume PDF, opens in a new tab">RESUME</a>
     <button data-open="about">ABOUT ME</button>
     <button data-open="contact" aria-keyshortcuts="C">CONTACT</button>
   </div>
@@ -75,6 +83,19 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
+<div id="quest-win" hidden>
+  <canvas id="quest-fx" aria-hidden="true"></canvas>
+  <div class="quest-win-card card" role="dialog" aria-labelledby="quest-win-title" aria-modal="true">
+    <h2 id="quest-win-title">You've seen it all</h2>
+    <p>Thanks for walking the campus tour. Download Isaac's resume or send him a note.</p>
+    <div class="btnrow">
+      <a class="btn primary" href="assets/Resume_Isaac_Moreno.pdf?v=19" target="_blank" rel="noopener">Download resume</a>
+      <button class="btn" type="button" data-act="open" data-id="contact" id="quest-contact">Contact me</button>
+      <button class="btn ghost" type="button" id="quest-win-close">Close</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-wrap" hidden>
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-sr">
     <div id="modal-head"><span id="crumb"></span><span id="modal-title-sr" class="sr"></span><span id="hdr-extra"></span><button id="modal-close" class="btn ghost">X Close</button></div>
@@ -88,11 +109,11 @@
   <div class="noscript">
     <h1>Isaac Moreno</h1>
     <p>Computer Science senior at UTEP, Minor in Mathematics. Expected graduation Dec 2026. El Paso, TX.</p>
-    <p>This playable campus needs JavaScript. Everything is also on the <a href="recruiter.html">plain recruiter page</a>, and the <a href="assets/Resume_Isaac_Moreno.pdf?v=16">resume PDF</a>.</p>
+    <p>This playable campus needs JavaScript. Everything is also on the <a href="recruiter.html">plain recruiter page</a>, and the <a href="assets/Resume_Isaac_Moreno.pdf?v=19">resume PDF</a>.</p>
     <p>Email: <a href="mailto:ipmoreno1@miners.utep.edu">ipmoreno1@miners.utep.edu</a> · <a href="https://linkedin.com/in/isaac-moreno">LinkedIn</a> · <a href="https://github.com/Ipmoreno1">GitHub</a></p>
     <p class="fine">Fan-inspired by playable portfolios, not affiliated with any game company.</p>
   </div>
 </noscript>
-<script type="module" src="js/main.js?v=16"></script>
+<script type="module" src="js/main.js?v=19"></script>
 </body>
 </html>
