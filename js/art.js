@@ -254,8 +254,8 @@ export function makeCharacter(spec) {
 // Isaac's walk sprite comes from assets/isaac-walk.png (a keyed, quantized
 // sheet of his bust-matched chibi). 4 directions x 4 frames, feet at ISAAC_FOOT.
 // Idle should use frame 1 (the standing pose); frames are step, stand, step, stand.
-export const ISAAC_W = 29, ISAAC_H = 54, ISAAC_FOOT = 51;
-export const ISAAC_SHEET = "assets/isaac-walk.png?v=20";
+export const ISAAC_W = 26, ISAAC_H = 46, ISAAC_FOOT = 44, ISAAC_COLS = 5;
+export const ISAAC_SHEET = "assets/isaac-walk.png?v=22";
 
 function sliceIsaacFrame(img, col, row) {
   const [c, g] = mk(ISAAC_W, ISAAC_H);
@@ -266,17 +266,18 @@ function sliceIsaacFrame(img, col, row) {
 
 export function makeIsaacFromImage(img) {
   const rows = { down: 0, left: 1, right: 2, up: 3 };
-  const out = { down: [], left: [], right: [], up: [], foot: ISAAC_FOOT };
+  const out = { down: [], left: [], right: [], up: [], idle: {}, foot: ISAAC_FOOT };
   for (const [dir, r] of Object.entries(rows)) {
     for (let f = 0; f < 4; f++) out[dir].push(sliceIsaacFrame(img, f, r));
+    out.idle[dir] = sliceIsaacFrame(img, 4, r);
   }
   const [pc, pg] = mk(32, 32);
   const bg = "#d1e3d3";
   rect(pg, 0, 0, 32, 32, bg);
   for (let y = 0; y < 32; y += 2) rect(pg, 0, y, 32, 1, shade(bg, -0.04));
   pg.imageSmoothingEnabled = false;
-  // Head crop of the front standing frame (frame 1)
-  pg.drawImage(out.down[1], 1, 1, 27, 28, 0, 0, 32, 32);
+  // Head crop of the front standing (idle) frame
+  pg.drawImage(out.idle.down, 2, 1, 22, 22, 0, 0, 32, 32);
   out.portrait = pc;
   return out;
 }
@@ -415,7 +416,7 @@ export function makeTree(kind = "mesquite", seed = 1) {
   };
   const pal = pals[kind] || pals.mesquite; const frames = [];
   for (let f = 0; f < 2; f++) {
-    const R = rng(seed * 31 + 5); const [c, g] = mk(34, 40, true);
+    const R = rng(seed * 31 + 5); const [src, g] = mk(34, 40, true); const c = src;
     const trunk = kind === "paloverde" ? ["#6f8c3a", "#93ae52", "#556e2c"] : ["#5a3d27", "#80593a", "#3f2a1a"];
     rect(g, 15, 25, 4, 13, trunk[0]); rect(g, 15, 25, 1, 13, trunk[1]); rect(g, 18, 25, 1, 13, trunk[2]); rect(g, 13, 36, 8, 2, trunk[0]); px(g, 12, 37, trunk[0]); px(g, 21, 37, trunk[0]);
     rect(g, 11, 27, 5, 2, trunk[0]); rect(g, 18, 28, 5, 2, trunk[0]);
@@ -426,7 +427,10 @@ export function makeTree(kind = "mesquite", seed = 1) {
     for (let k = 0; k < 22; k++) { const x = 6 + ((R() * 22) | 0), y = 3 + ((R() * 20) | 0); const d = g.getImageData(x, y, 1, 1).data; if (d[3] === 0) continue; px(g, x + (y < 14 ? sw : 0), y, R() < 0.6 ? pal[3] : pal[0]); px(g, x + 1 + (y < 14 ? sw : 0), y, R() < 0.5 ? pal[2] : pal[3]); }
     if (kind === "paloverde") for (let k = 0; k < 30; k++) { const x = 5 + ((R() * 24) | 0), y = 2 + ((R() * 22) | 0); if (g.getImageData(x, y, 1, 1).data[3]) px(g, x + (y < 14 ? sw : 0), y, R() < 0.5 ? "#f6d84a" : "#e8b830"); }
     if (kind === "willow") for (let k = 0; k < 18; k++) { const x = 5 + ((R() * 24) | 0), y = 2 + ((R() * 22) | 0); if (g.getImageData(x, y, 1, 1).data[3]) px(g, x + (y < 14 ? sw : 0), y, R() < 0.5 ? "#f0a8cf" : "#d77ab0"); }
-    frames.push(outline(c));
+    const [big, bg] = mk(42, 52, true);
+    bg.imageSmoothingEnabled = false;
+    bg.drawImage(c, 0, 0, 42, 52);
+    frames.push(outline(big));
   }
   return frames;
 }
@@ -531,9 +535,9 @@ export function makeRock(seed = 4) {
   return outline(c);
 }
 export function makeLamp() {
-  const [c, g] = mk(10, 32);
-  rect(g, 4, 8, 2, 22, "#2a2a30"); px(g, 4, 9, "#55555f"); rect(g, 2, 29, 6, 2, "#2a2a30"); rect(g, 3, 28, 4, 1, "#3c3c44");
-  rect(g, 1, 1, 8, 1, "#2a2a30"); rect(g, 2, 2, 6, 5, "#2a2a30"); rect(g, 3, 3, 4, 3, "#ffdc7a"); px(g, 3, 3, "#fff6c8"); rect(g, 3, 7, 4, 1, "#2a2a30"); px(g, 4, 0, "#2a2a30"); px(g, 5, 0, "#2a2a30");
+  const [c, g] = mk(12, 52);
+  rect(g, 5, 12, 2, 36, "#2a2a30"); px(g, 5, 13, "#55555f"); rect(g, 3, 48, 6, 3, "#2a2a30"); rect(g, 4, 47, 4, 1, "#3c3c44");
+  rect(g, 2, 1, 8, 1, "#2a2a30"); rect(g, 3, 2, 6, 8, "#2a2a30"); rect(g, 4, 3, 4, 5, "#ffdc7a"); px(g, 4, 3, "#fff6c8"); rect(g, 4, 9, 4, 1, "#2a2a30"); px(g, 5, 0, "#2a2a30"); px(g, 6, 0, "#2a2a30");
   return outline(c);
 }
 export function makeBench() {
@@ -594,35 +598,39 @@ export function makeUrn() { // stone urn shaped like a prayer wheel (Centennial 
   return outline(c);
 }
 export function makeBusStop() {
-  const [c, g] = mk(34, 34);
-  rect(g, 1, 4, 32, 3, "#2a6f76"); rect(g, 1, 4, 32, 1, "#3fa0a8"); rect(g, 2, 7, 2, 24, "#3a3a44"); rect(g, 30, 7, 2, 24, "#3a3a44");
-  rect(g, 4, 8, 26, 14, "rgba(150,200,220,0.55)"); rect(g, 4, 8, 26, 1, "rgba(255,255,255,0.6)"); rect(g, 6, 22, 22, 3, "#7a4a2a"); rect(g, 7, 25, 1, 5, "#2a2a30"); rect(g, 26, 25, 1, 5, "#2a2a30");
+  const [c, g] = mk(44, 44);
+  rect(g, 2, 6, 40, 4, "#2a6f76"); rect(g, 2, 6, 40, 1, "#3fa0a8"); rect(g, 3, 10, 3, 30, "#3a3a44"); rect(g, 38, 10, 3, 30, "#3a3a44");
+  rect(g, 6, 11, 32, 18, "rgba(150,200,220,0.55)"); rect(g, 6, 11, 32, 1, "rgba(255,255,255,0.6)"); rect(g, 8, 29, 28, 4, "#7a4a2a"); rect(g, 9, 33, 2, 7, "#2a2a30"); rect(g, 33, 33, 2, 7, "#2a2a30");
   // sign
-  rect(g, 0, 0, 12, 10, "#f2f2ee"); rect(g, 0, 0, 12, 1, "#e0703a"); g.fillStyle = "#e0703a"; g.beginPath(); g.arc(6, 5, 3, 0, 7); g.fill(); px(g, 5, 4, "#fff"); px(g, 6, 4, "#fff"); px(g, 7, 4, "#fff");
+  rect(g, 0, 0, 14, 12, "#f2f2ee"); rect(g, 0, 0, 14, 1, "#e0703a"); g.fillStyle = "#e0703a"; g.beginPath(); g.arc(7, 6, 4, 0, 7); g.fill(); px(g, 6, 5, "#fff"); px(g, 7, 5, "#fff"); px(g, 8, 5, "#fff");
   return outline(c);
 }
 export function makeBus() {
-  const W = 64, Hh = 28; const [c, g] = mk(W, Hh);
-  rect(g, 1, 3, 61, 19, "#f3f1ea"); rect(g, 1, 3, 61, 1, "#ffffff"); rect(g, 2, 1, 57, 2, "#d9d7cf");
+  const W = 160, Hh = 72; const [c, g] = mk(W, Hh);
+  rect(g, 2, 8, 155, 48, "#f3f1ea"); rect(g, 2, 8, 155, 2, "#ffffff"); rect(g, 5, 3, 145, 5, "#d9d7cf");
   // window band
-  rect(g, 4, 6, 50, 7, "#24394f"); for (let x = 4; x < 54; x += 9) { rect(g, x, 6, 1, 7, "#f3f1ea"); rect(g, x + 2, 7, 3, 1, "#6f93b0"); px(g, x + 2, 8, "#4a6c88"); }
-  rect(g, 55, 5, 6, 10, "#2d4a63"); rect(g, 56, 6, 2, 3, "#86aac4");
+  rect(g, 10, 15, 126, 18, "#24394f"); for (let x = 10; x < 136; x += 22) { rect(g, x, 15, 2, 18, "#f3f1ea"); rect(g, x + 5, 17, 8, 3, "#6f93b0"); px(g, x + 5, 20, "#4a6c88"); }
+  rect(g, 138, 13, 16, 26, "#2d4a63"); rect(g, 141, 16, 6, 8, "#86aac4");
   // livery: sunset swoosh
-  for (let x = 1; x < 62; x++) { const y = 18 + Math.round(Math.sin(x * 0.08 + 1) * 1); rect(g, x, y, 1, 1, "#f2b632"); rect(g, x, y + 1, 1, 1, "#f08a24"); rect(g, x, y + 2, 1, 2, "#d4452b"); }
-  rect(g, 1, 21, 61, 1, "#2a9d8f");
-  text3(g, "SUN METRO", 7, 13, "#1f3a6e");
+  for (let x = 2; x < 157; x++) { const y = 46 + Math.round(Math.sin(x * 0.05 + 1) * 2); rect(g, x, y, 1, 2, "#f2b632"); rect(g, x, y + 2, 1, 2, "#f08a24"); rect(g, x, y + 4, 1, 4, "#d4452b"); }
+  rect(g, 2, 54, 155, 3, "#2a9d8f");
+  // 2x pixel font so the name stays readable on the bigger bus
+  const label = "SUN METRO";
+  for (let i = 0; i < label.length; i++) {
+    const m = F3[label[i]] || F3[" "];
+    for (let p = 0; p < 15; p++) if (m[p] === "1") rect(g, 16 + i * 8 + (p % 3) * 2, 34 + ((p / 3) | 0) * 2, 2, 2, "#1f3a6e");
+  }
   // door, lights
-  rect(g, 46, 13, 7, 9, "#24394f"); rect(g, 49, 13, 1, 9, "#f3f1ea"); rect(g, 61, 16, 2, 2, "#ffe08a"); rect(g, 0, 16, 2, 2, "#d4452b");
-  for (const wx of [12, 48]) { g.fillStyle = "#1c1c22"; g.beginPath(); g.arc(wx, 22, 4.5, 0, 7); g.fill(); g.fillStyle = "#8a8f99"; g.beginPath(); g.arc(wx, 22, 2, 0, 7); g.fill(); }
-  rect(g, 0, 23, W, 1, "rgba(0,0,0,0)");
+  rect(g, 115, 33, 18, 23, "#24394f"); rect(g, 123, 33, 2, 23, "#f3f1ea"); rect(g, 154, 40, 5, 5, "#ffe08a"); rect(g, 1, 40, 5, 5, "#d4452b");
+  for (const wx of [30, 120]) { g.fillStyle = "#1c1c22"; g.beginPath(); g.arc(wx, 58, 11, 0, 7); g.fill(); g.fillStyle = "#8a8f99"; g.beginPath(); g.arc(wx, 58, 5, 0, 7); g.fill(); }
   return c;
 }
 export function makeCar(color = "#c0392b") {
-  const [c, g] = mk(30, 20);
-  g.fillStyle = "rgba(0,0,0,0.25)"; g.fillRect(2, 16, 26, 3);
-  rect(g, 2, 8, 26, 8, color); rect(g, 2, 8, 26, 1, shade(color, 0.3)); rect(g, 7, 3, 15, 6, shade(color, -0.1)); rect(g, 8, 4, 6, 4, "#2b3e52"); rect(g, 15, 4, 6, 4, "#2b3e52"); px(g, 9, 4, "#8fb0c8"); px(g, 16, 4, "#8fb0c8");
-  rect(g, 26, 10, 2, 2, "#ffe08a"); rect(g, 2, 10, 1, 2, "#d4452b");
-  for (const wx of [8, 22]) { rect(g, wx - 3, 14, 6, 4, "#1c1c22"); rect(g, wx - 1, 15, 2, 2, "#7a7f88"); }
+  const [c, g] = mk(40, 28);
+  g.fillStyle = "rgba(0,0,0,0.25)"; g.fillRect(3, 22, 34, 4);
+  rect(g, 3, 12, 34, 11, color); rect(g, 3, 12, 34, 1, shade(color, 0.3)); rect(g, 9, 4, 20, 9, shade(color, -0.1)); rect(g, 10, 5, 8, 6, "#2b3e52"); rect(g, 20, 5, 8, 6, "#2b3e52"); px(g, 11, 5, "#8fb0c8"); px(g, 21, 5, "#8fb0c8");
+  rect(g, 35, 14, 3, 3, "#ffe08a"); rect(g, 3, 14, 2, 3, "#d4452b");
+  for (const wx of [11, 29]) { rect(g, wx - 4, 20, 8, 5, "#1c1c22"); rect(g, wx - 1, 21, 3, 3, "#7a7f88"); }
   return outline(c);
 }
 export function makePicnic() {
@@ -707,7 +715,7 @@ export function paintDzong(o) {
   if (o.midBands !== false) for (let f = 1; f < floors; f++) { const by = Math.round(wallTop + 3 + f * ((wallBot - wallTop - 6) / floors)) - 2; const ins = inset(by); rect(g, ins, by, W - ins * 2, 3, band); rect(g, ins, by, W - ins * 2, 1, shade(band, 0.2)); for (let x = ins + 3; x < W - ins - 2; x += 6) px(g, x, by + 1, "#efe2c0"); }
   // windows
   const usable = wallBot - wallTop - 6; const fh = usable / floors;
-  const skip = (x) => (o.glass || []).some((gl) => x + 10 > gl.x && x < gl.x + gl.w) || (o.door !== false && Math.abs(x + 3 - (o.doorX ?? W / 2)) < (o.doorW || 16) / 2 + 6);
+  const skip = (x) => (o.glass || []).some((gl) => x + 10 > gl.x && x < gl.x + gl.w) || (o.door !== false && Math.abs(x + 3 - (o.doorX ?? W / 2)) < (o.doorW || 22) / 2 + 6);
   for (let f = 0; f < floors; f++) {
     const big = f === 0 && o.rabsel; // top floor gets the projecting wooden window
     const wh = big ? 13 : Math.min(12, Math.round(fh * 0.5)); const wwid = big ? 12 : (o.winW || 8);
@@ -724,7 +732,7 @@ export function paintDzong(o) {
   for (const bx of o.banners || []) { const by = wallTop + 4; rect(g, bx, by, 6, 22, "#ff8200"); rect(g, bx, by, 6, 1, "#ffb15c"); rect(g, bx + 1, by + 6, 4, 9, "#ffffff"); rect(g, bx + 2, by + 7, 2, 7, "#1f3a6e"); for (let x = 0; x < 6; x += 2) px(g, bx + x, by + 22, "#ff8200"); rect(g, bx - 1, by - 1, 8, 1, "#3a2a20"); }
   // door
   if (o.door !== false) {
-    const dw = o.doorW || 16, dx = Math.round((o.doorX ?? W / 2) - dw / 2), dh = o.doorH || 20, dy = wallBot - dh;
+    const dw = o.doorW || 22, dx = Math.round((o.doorX ?? W / 2) - dw / 2), dh = o.doorH || 34, dy = wallBot - dh;
     rect(g, dx - 3, dy - 5, dw + 6, 4, "#a3321f"); rect(g, dx - 3, dy - 5, dw + 6, 1, "#e0b050"); for (let x = dx - 2; x < dx + dw + 3; x += 3) px(g, x, dy - 3, "#2fa39a");
     rect(g, dx - 2, dy - 1, dw + 4, dh + 1, "#3b2418");
     rect(g, dx, dy, dw, dh, "#7a4524"); for (let x = dx + 2; x < dx + dw; x += 3) rect(g, x, dy, 1, dh, "#5f341a"); rect(g, dx + dw / 2 - 1, dy, 1, dh, "#3b2418");
@@ -744,7 +752,7 @@ export function paintDzong(o) {
   if (o.finials) for (const fx of o.finials) { rect(g, fx - 1, top - 4, 3, 5, "#e3b341"); px(g, fx, top - 5, "#fff1a8"); }
   // plinth base and steps
   for (let y = wallBot; y < Hh; y++) for (let x = ov - 1; x < W - ov + 1; x++) { const row = (y - wallBot) >> 2; const m = (y - wallBot) % 4 === 3 || (x + row * 5) % 10 === 0; px(g, x, y, m ? "#7f6e5c" : y === wallBot ? "#cbbba3" : shade("#a8957f", (hash2(x >> 3, row) - 0.5) * 0.12)); }
-  if (o.door !== false) { const dw = (o.doorW || 16) + 10, dx = Math.round((o.doorX ?? W / 2) - dw / 2); for (let s = 0; s < baseH; s += 2) { rect(g, dx - s, wallBot + s, dw + s * 2, 2, s % 4 ? "#d8cab3" : "#c4b49b"); rect(g, dx - s, wallBot + s, dw + s * 2, 1, "#e9dfcc"); } }
+  if (o.door !== false) { const dw = (o.doorW || 22) + 10, dx = Math.round((o.doorX ?? W / 2) - dw / 2); for (let s = 0; s < baseH; s += 2) { rect(g, dx - s, wallBot + s, dw + s * 2, 2, s % 4 ? "#d8cab3" : "#c4b49b"); rect(g, dx - s, wallBot + s, dw + s * 2, 1, "#e9dfcc"); } }
   return { img: c, glow: gc, w: W, h: Hh, doorX: o.doorX ?? W / 2 };
 
   function roofTex(g2, x0, y0, w, h, base, R2) { for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) { const r = y - y0; if ((r + 1) % 3 === 0) { px2(g2, x, y, shade(base, -0.22)); } else if ((x + (((r / 3) | 0) % 2) * 2) % 4 === 0) px2(g2, x, y, shade(base, -0.1)); else if (r < 2) px2(g2, x, y, shade(base, 0.14)); } }
@@ -771,7 +779,7 @@ function rabsel(g, gg, x, y, w, h, R) {
 }
 
 export function paintLhakhang() {
-  const b = paintDzong({ w: 8, h: 7, floors: 1, wall: "#f4efe4", roof: "#7a3a28", band: "#9c2a1c", roofH: 14, bandH: 10, baseH: 12, batter: 3, doorW: 14, winGap: 22, seed: 41, finials: [64] });
+  const b = paintDzong({ w: 8, h: 7, floors: 1, wall: "#f4efe4", roof: "#7a3a28", band: "#9c2a1c", roofH: 14, bandH: 10, baseH: 12, batter: 3, doorW: 20, doorH: 32, winGap: 22, seed: 41, finials: [64] });
   const g = b.img.getContext("2d");
   // painted cornice in three colors and a golden ridge ornament
   for (let x = 6; x < b.w - 6; x += 4) { rect(g, x, 26, 2, 2, ["#2f8f86", "#e3b341", "#d8382e"][(x / 4) % 3 | 0]); }

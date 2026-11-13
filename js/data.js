@@ -19,7 +19,7 @@ export const PROFILE = {
   // GitHub: https://github.com/Ipmoreno1 (confirmed by Isaac, Nov 10, 2026; 0 public repos at the time).
   // Paste the real profile URL here once it is public and it will show up everywhere.
   github: "https://github.com/Ipmoreno1",
-  resumePdf: "assets/Resume_Isaac_Moreno.pdf?v=20",
+  resumePdf: "assets/Resume_Isaac_Moreno.pdf?v=22",
   siteUrl: "https://ipmoreno.dev/",
   role: "Full-stack builder",
 };

@@ -1,6 +1,6 @@
 // world.js : the two walkable areas (Main Campus and the Sun Bowl side), built from tiles, buildings and props.
-import * as A from "./art.js?v=20";
-import { BUILDINGS, paintBuilding } from "./buildings.js?v=20";
+import * as A from "./art.js?v=22";
+import { BUILDINGS, paintBuilding } from "./buildings.js?v=22";
 const T = A.T;
 export const TILE = { ground: 0, lawn: 1, path: 2, plaza: 3, road: 4, walk: 5, turf: 6, water: 7, mtn: 8, dg: 9, park: 10 };
 const SOFT = [TILE.ground, TILE.lawn, TILE.path, TILE.dg];

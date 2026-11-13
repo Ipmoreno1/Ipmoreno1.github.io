@@ -1,10 +1,10 @@
 // main.js : game loop, input, movement, camera, lighting, weather and the bus.
-import * as A from "./art.js?v=20";
-import { buildAreas } from "./world.js?v=20";
-import { LANDMARKS, MASCOTS, VISITORS, PET_TALK, QUEST } from "./data.js?v=20";
-import { makeMascot, portraitOf } from "./mascots.js?v=20";
-import { UI } from "./ui.js?v=20";
-import { Sound } from "./audio.js?v=20";
+import * as A from "./art.js?v=22";
+import { buildAreas } from "./world.js?v=22";
+import { LANDMARKS, MASCOTS, VISITORS, PET_TALK, QUEST } from "./data.js?v=22";
+import { loadMascots, portraitOf } from "./mascots.js?v=22";
+import { UI } from "./ui.js?v=22";
+import { Sound } from "./audio.js?v=22";
 
 const T = A.T;
 const $ = (s) => document.querySelector(s);
@@ -19,8 +19,6 @@ const { art, areas } = buildAreas();
 const HOST_IDS = ["miner", "bear", "gator", "longhorn", "eagle"];
 const VISITOR_IDS = Object.keys(VISITORS);
 const chars = {};
-for (const id of HOST_IDS) chars[id] = makeMascot(id);
-for (const id of VISITOR_IDS) chars[id] = makeMascot(id);
 const cat = A.makeCat();
 const petPortrait = portraitOf(cat.down.idle[0], "#e8d4b0", 0, 0, -4);
 const NPC_NAMES = Object.fromEntries([
@@ -136,7 +134,7 @@ function updatePlayer(dt) {
     const ox = player.x, oy = player.y;
     moveEnt(player, dx * sp, dy * sp);
     const d = Math.hypot(player.x - ox, player.y - oy);
-    if (d > 0.01) { player.moving = true; player.dist += d * (run ? 0.8 : 1); player.trail.push([player.x, player.y]); if (player.trail.length > 90) player.trail.shift(); }
+    if (d > 0.01) { player.moving = true; player.dist += d; player.trail.push([player.x, player.y]); if (player.trail.length > 90) player.trail.shift(); }
   }
 }
 function updatePet(dt) {
@@ -223,9 +221,10 @@ async function rideBus(to, at) {
       const k = Math.min(1, (now - t0) / dur);
       g.clearRect(0, 0, cv.width, cv.height);
       const ry = Math.round(cv.height * 0.52);
+      const bw = art.bus.width, bh = art.bus.height;
       for (let x = -((now / 8) % 12); x < cv.width; x += 12) { g.fillStyle = "#f2c94c"; g.fillRect(Math.round(x), ry + 14, 7, 2); }
-      const bx = state.reduce ? cv.width / 2 - 32 : Math.round(-70 + (cv.width + 140) * (k < 0.5 ? k * 0.9 : 0.45 + (k - 0.5) * 1.1));
-      g.drawImage(art.bus, bx, ry - 18 + (Math.floor(now / 120) % 2));
+      const bx = state.reduce ? cv.width / 2 - bw / 2 : Math.round(-bw - 20 + (cv.width + bw * 2) * (k < 0.5 ? k * 0.9 : 0.45 + (k - 0.5) * 1.1));
+      g.drawImage(art.bus, bx, ry - Math.round(bh * 0.72) + (Math.floor(now / 120) % 2));
       if (!switched && k > 0.45) { switched = true; enterArea(to, at); }
       if (k < 1) requestAnimationFrame(step); else res();
     };
@@ -291,8 +290,16 @@ function updateCam(dt) {
 }
 const rain = [], dust = [];
 let flash = 0, nextFlash = 6;
-function drawChar(e, sprite, frameIdx, extraY = 0) {
-  const fr = sprite[e.dir][frameIdx]; const foot = sprite.foot ?? 34;
+// Distance-based walk: ~132ms/frame at walk speed (68 px/s / 9), faster when running.
+const WALK_PX = 9;
+const NPC_WALK_PX = 6;
+function walkFrame(e, sprite) {
+  if (!e.moving) return (sprite.idle && sprite.idle[e.dir]) || sprite[e.dir][1];
+  const px = (e.home || e.route) ? NPC_WALK_PX : WALK_PX;
+  return sprite[e.dir][Math.floor(e.dist / px) % 4];
+}
+function drawChar(e, sprite, extraY = 0) {
+  const fr = walkFrame(e, sprite); const foot = sprite.foot ?? 34;
   vg.drawImage(fr, Math.round(e.x - (fr.width >> 1) - ix), Math.round(e.y - foot - 1 - iy + extraY));
 }
 let ix = 0, iy = 0;
@@ -317,8 +324,8 @@ function render(dt) {
   for (const en of ents) { vg.beginPath(); const sr = en.kind === "pet" ? 7 : en.kind === "player" ? 8 : 10; vg.ellipse(en.e.x - ix, en.e.y - iy - 1, sr, 3, 0, 0, 7); vg.fill(); }
   const all = list.concat(ents).sort((a, b) => a.sortY - b.sortY);
   for (const d of all) {
-    if (d.kind === "player") { const f = player.moving ? Math.floor(player.dist / 7) % 4 : 1; drawChar(player, chars.isaac, f); }
-    else if (d.kind === "npc") { const n = d.e; const f = n.moving ? Math.floor(n.dist / 7) % 4 : 0; drawChar(n, n.sprite, f); }
+    if (d.kind === "player") { drawChar(player, chars.isaac); }
+    else if (d.kind === "npc") { drawChar(d.e, d.e.sprite); }
     else if (d.kind === "pet") { const set = cat[pet.dir] || cat.right; let im; if (pet.moving) im = set.walk[Math.floor(pet.frame) % 4]; else { const seq = [0, 0, 0, 1, 1, 0, 0, 2, 0, 0, 3, 0, 3, 0]; im = set.idle[state.reduce ? 0 : seq[Math.floor(t * 3) % seq.length]]; } const hop = pet.hop > 0 ? -Math.round(Math.sin(pet.hop * 10) * 3 + 3) : 0; vg.drawImage(im, Math.round(pet.x - 16 - ix), Math.round(pet.y - 22 - iy + hop)); }
     else { const o = d; const fi = o.frames.length > 1 && !state.reduce ? Math.floor(t * (o.rate || 1) + o.phase) % o.frames.length : 0; vg.drawImage(o.frames[fi], o.x - ix, o.y - iy); }
   }
@@ -453,7 +460,9 @@ $("#quest-reset")?.addEventListener("click", () => Quest.reset());
 $("#quest-again")?.addEventListener("click", () => Quest.showWin());
 
 async function start() {
-  chars.isaac = await A.loadIsaac();
+  const [isaac, mascots] = await Promise.all([A.loadIsaac(), loadMascots([...HOST_IDS, ...VISITOR_IDS])]);
+  chars.isaac = isaac;
+  Object.assign(chars, mascots);
   player.sprite = chars.isaac;
   UI.init(Game);
   Game.setReduce(state.reduce);
