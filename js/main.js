@@ -1,10 +1,10 @@
 // main.js : game loop, input, movement, camera, lighting, weather and the bus.
-import * as A from "./art.js?v=15";
-import { buildAreas } from "./world.js?v=15";
-import { LANDMARKS, STUDENT_LINES, MASCOTS, PET_TALK } from "./data.js?v=15";
-import { makeMascot, portraitOf } from "./mascots.js?v=15";
-import { UI } from "./ui.js?v=15";
-import { Sound } from "./audio.js?v=15";
+import * as A from "./art.js?v=16";
+import { buildAreas } from "./world.js?v=16";
+import { LANDMARKS, STUDENT_LINES, MASCOTS, PET_TALK } from "./data.js?v=16";
+import { makeMascot, portraitOf } from "./mascots.js?v=16";
+import { UI } from "./ui.js?v=16";
+import { Sound } from "./audio.js?v=16";
 
 const T = A.T;
 const $ = (s) => document.querySelector(s);
@@ -18,7 +18,7 @@ const state = {
 const { art, areas } = buildAreas();
 const chars = {
   isaac: A.makeCharacter({ bg: "#f6d9a0", pal: { skin: "#c98d62", hair: "#2b1d16", shirt: "#e8742a", accent: "#1f3a6e", pants: "#2f3d5c", shoe: "#3a2a20" } }),
-  // original campus mascots (js/mascots.js?v=15)
+  // original campus mascots (js/mascots.js?v=16)
   miner: makeMascot("miner"), jack: makeMascot("jack"), lizard: makeMascot("lizard"), coyote: makeMascot("coyote"),
   s0: A.makeCharacter({ backpack: "#2a9d8f", long: true, pal: { hair: "#6b3e22", shirt: "#2b4d8f", accent: "#ffffff", skin: "#e0ad84", pants: "#4a4a55" } }),
   s1: A.makeCharacter({ cap: "#ff8200", backpack: "#d8502e", pal: { hair: "#e2c06a", shirt: "#f2f2ee", accent: "#ff8200", skin: "#f0c3a0" } }),

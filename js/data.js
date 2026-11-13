@@ -19,7 +19,7 @@ export const PROFILE = {
   // GitHub: https://github.com/Ipmoreno1 (confirmed by Isaac, Nov 10, 2026; 0 public repos at the time).
   // Paste the real profile URL here once it is public and it will show up everywhere.
   github: "https://github.com/Ipmoreno1",
-  resumePdf: "assets/Resume_Isaac_Moreno.pdf?v=15",
+  resumePdf: "assets/Resume_Isaac_Moreno.pdf?v=16",
   siteUrl: "https://ipmoreno.dev/",
   role: "Full-stack builder",
 };
@@ -65,16 +65,15 @@ export const PROJECTS = [
     kind: "Full-stack web app for my photography business",
     categories: ["Web", "Data"],
     stack: ["React", "Vite", "Supabase", "PostgreSQL", "Vercel", "Resend"],
-    summary: "A full-stack photography business web app with a cinematic portfolio gallery, a booking system, and an admin panel, serving real El Paso clients.",
+    summary: "A full-stack photography portfolio and booking site with a public gallery, an inquiry form, and an authenticated admin panel.",
     bullets: [
-      "Built and deployed a full-stack photography business web app with a cinematic portfolio gallery, serving real El Paso clients.",
-      "Designed a PostgreSQL-backed booking system with automated Resend email notifications, cutting manual coordination.",
-      "Implemented a password-protected admin panel for bookings, media uploads, and portfolio updates without code changes.",
-      "Architected a cloud storage pipeline with Supabase Storage and edge functions; deployed on Vercel with continuous delivery.",
+      "Built a photography portfolio and booking site in React and Vite, with a public gallery from Supabase Storage, and deployed it on Vercel.",
+      "Designed a PostgreSQL-backed inquiry form that emails new bookings through a serverless edge function and Resend.",
+      "Built an admin panel with Supabase authentication and row-level security so only I can manage inquiries, media, and portfolio updates.",
     ],
     status: "Ongoing",
     landmark: "museum",
-    links: [], // add {label, url} only for real, public links
+    links: [{ label: "Live site", url: "https://moreno-captures.vercel.app" }],
   },
   {
     id: "espn-hub",
@@ -260,7 +259,7 @@ export const CAMPUS_FACTS = [
 // Optional link to the 3D Minecraft Dungeons-style version of this portfolio.
 // Leave it empty until there is a confirmed live URL. Nothing about it shows while it is empty.
 export const SITE = {
-  dungeonsVersionUrl: "https://ipmoreno.dev/dungeons/",
+  dungeonsVersionUrl: "",
   footer: "Fan-inspired by playable portfolios, not affiliated with any game company.",
 };
 
@@ -291,7 +290,7 @@ export const MASCOTS = {
     name: "Spike the Horned Lizard", short: "Spike", title: "Pick a story",
     greet: "Psst. Spike here, the horned lizard. I sun myself by the museum and watch Isaac's photo work. Want the story?",
     cards: [
-      { t: "Moreno Captures", s: "Full-stack app", a: "Moreno Captures is the web app for Isaac's photography business: a cinematic portfolio gallery, a booking system and an admin panel, serving real El Paso clients. Built with React, Vite and Supabase.", open: ["project", "moreno-captures", "Open project"] },
+      { t: "Moreno Captures", s: "Full-stack app", a: "Moreno Captures is the web app for Isaac's photography business: a public photo gallery, a booking inquiry form, and an authenticated admin panel. Built with React, Vite and Supabase.", open: ["project", "moreno-captures", "Open project"] },
       { t: "Disney PhotoPass", s: "Jun 2024 - Jan 2025", a: "In the Disney College Program Isaac was a Cast Member and PhotoPass photographer at Walt Disney World, shooting guests in a fast-paced setting with strict quality and turnaround standards.", open: ["project", "disney-photopass", "Open experience"] },
       { t: "Clear View Realty", s: "Jun 2021 - Jun 2023", a: "From 2021 to 2023 Isaac worked as a real estate agent in El Paso, handling pricing analysis, negotiations and contracts for clients.", open: ["project", "clear-view-realty", "Open experience"] },
     ],

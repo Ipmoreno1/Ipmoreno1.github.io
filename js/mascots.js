@@ -2,7 +2,7 @@
 // Costumed, upright chibi mascots (28x44 frames, feet at y=41) with 4 walk frames per direction and a 64x64
 // dialog portrait. Species: a hard-hat miner, a desert jackrabbit, a Texas horned lizard and a coyote.
 // All art is drawn here pixel by pixel; nothing is traced from another game or from official mascot art.
-import { mk, shade, outline, text3 } from "./art.js?v=15";
+import { mk, shade, outline, text3 } from "./art.js?v=16";
 
 export const MW = 28, MH = 44, MFOOT = 41;
 const px = (g, x, y, c) => { g.fillStyle = c; g.fillRect(x, y, 1, 1); };

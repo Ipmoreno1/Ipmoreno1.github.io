@@ -1,5 +1,5 @@
 // ui.js : HUD, signs, toasts and every panel (Dig Log, project detail, landmarks, map, MinerDex, contact, help, dialogue).
-import { PROFILE, DEX, ABOUT, EDUCATION, PROJECTS, EXPERIENCE_IDS, SKILLS, INTERESTS, LANDMARKS, CAMPUS_FACTS, MASCOTS, PET_TALK, SITE } from "./data.js?v=15";
+import { PROFILE, DEX, ABOUT, EDUCATION, PROJECTS, EXPERIENCE_IDS, SKILLS, INTERESTS, LANDMARKS, CAMPUS_FACTS, MASCOTS, PET_TALK, SITE } from "./data.js?v=16";
 
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -21,10 +21,10 @@ const AREA_NAME = { main: "Main Campus", athletics: "Sun Bowl & Athletics" };
 // sprites (whole-number scale, smoothing off), then the in-code character portrait.
 const HI = (window.devicePixelRatio || 1) >= 1.5;
 const img = (src) => { const i = new Image(); i.decoding = "async"; i.src = src; return i; };
-const AV_HD = img(HI ? "assets/isaac-portrait-hd@2x.png?v=15" : "assets/isaac-portrait-hd.png?v=15");
-const AV_HUD = img(HI ? "assets/isaac-portrait-hud@2x.png?v=15" : "assets/isaac-portrait-hud.png?v=15");
-const AVATAR = img("assets/isaac-portrait.png?v=15");
-const AVATAR32 = img("assets/isaac-portrait-32.png?v=15");
+const AV_HD = img(HI ? "assets/isaac-portrait-hd@2x.png?v=16" : "assets/isaac-portrait-hd.png?v=16");
+const AV_HUD = img(HI ? "assets/isaac-portrait-hud@2x.png?v=16" : "assets/isaac-portrait-hud.png?v=16");
+const AVATAR = img("assets/isaac-portrait.png?v=16");
+const AVATAR32 = img("assets/isaac-portrait-32.png?v=16");
 const AV_BG = "#d1e3d3"; // the portrait's mint background, used to pad the frame
 function drawPortrait(c) {
   if (!c) return;
