@@ -19,7 +19,7 @@ export const PROFILE = {
   // GitHub: https://github.com/Ipmoreno1 (confirmed by Isaac, Nov 10, 2026; 0 public repos at the time).
   // Paste the real profile URL here once it is public and it will show up everywhere.
   github: "https://github.com/Ipmoreno1",
-  resumePdf: "assets/Resume_Isaac_Moreno.pdf?v=16",
+  resumePdf: "assets/Resume_Isaac_Moreno.pdf?v=19",
   siteUrl: "https://ipmoreno.dev/",
   role: "Full-stack builder",
 };
@@ -188,7 +188,7 @@ export const PROJECTS = [
     bullets: [
       "All art is original pixel art drawn in code when the page loads: tiles, Bhutanese-style buildings, desert plants, characters, and the El Paso star on the Franklin Mountains.",
       "Vanilla HTML, CSS, and JavaScript on a 2D canvas with no frameworks, built as static files ready for GitHub Pages.",
-      "Keyboard, touch, and screen reader friendly, with a reduce-animation option and a no-JavaScript fallback.",
+      "Keyboard, touch, and screen reader friendly, with a reduce-animation option, a no-JavaScript fallback, and an optional campus tour in the playable view.",
       "All content lives in one data file that also generates the plain recruiter page.",
     ],
     status: "Ongoing",
@@ -253,7 +253,7 @@ export const CAMPUS_FACTS = [
   "UTEP opened in 1914 as the Texas State School of Mines and Metallurgy.",
   "Bhutanese-inspired architecture has been part of the campus design since 1917.",
   "UTEP's official mascot is Paydirt Pete, a miner. The name came from a 1974 contest with over 500 entries.",
-  "The campus mascots in this game are original characters made for this portfolio, not official UTEP mascots.",
+  "The visiting mascots on this campus are original pixel characters inspired by college mascots. They are not official school marks.",
 ];
 
 // Optional link to the 3D Minecraft Dungeons-style version of this portfolio.
@@ -261,43 +261,53 @@ export const CAMPUS_FACTS = [
 export const SITE = {
   dungeonsVersionUrl: "",
   footer: "Fan-inspired by playable portfolios, not affiliated with any game company.",
+  recruiterNote: "The playable campus has an optional tour. Visiting characters are original fan-inspired school mascots, not official marks.",
 };
 
-// Campus mascots in the pixel campus: original characters (not official UTEP mascots).
-// Each one gives a greeting and a row of topic cards. A card's answer shows in the dialog,
+// Campus mascots: original fan-inspired characters (not official school marks or logos).
+// Host mascots give a greeting and topic cards. A card's answer shows in the dialog,
 // and `open` adds a button that jumps to the matching panel. "fact" cycles CAMPUS_FACTS.
 export const MASCOTS = {
   miner: {
-    name: "Nugget the Miner", short: "Nugget", title: "Ask Nugget",
-    greet: "Howdy! I'm Nugget, the campus miner. You're in Centennial Plaza, Isaac's home base. Pick a topic and I'll dig it up.",
+    name: "Pete the Miner (UTEP)", short: "Pete", title: "Ask Pete", school: "UTEP", token: "about",
+    greet: "Howdy! I'm Pete the Miner, a fan nod to UTEP's Paydirt Pete. You're in Centennial Plaza, Isaac's home base. Pick a topic and I'll dig it up.",
     cards: [
       { t: "Who is Isaac?", s: "The short version", a: "Isaac Moreno is a Computer Science senior at UTEP with a Minor in Mathematics. He graduates in December 2026 and he's looking for new-grad software engineering roles.", open: ["about", null, "MinerDex"] },
       { t: "What does he build?", s: "Projects", a: "Full-stack web apps like Moreno Captures and ESPN Hub, plus Code Valkyrie from a UTEP hackathon. Every one of them is in the Dig Log.", open: ["log", null, "Dig Log"] },
-      { t: "Getting around", s: "Controls", a: "Walk with WASD or the arrow keys and hold Shift to run. Press E next to a building or a mascot. P opens the Dig Log, M the map. The Sun Metro stop down south runs to the Sun Bowl." },
+      { t: "Campus tour", s: "Optional quest", a: "Want a little quest? Talk to the five host mascots around campus. Each one holds a token: About, Projects, Experience, Skills, and Resume. It is optional, and you can still open every building without it." },
       { t: "Campus fact", s: "UTEP trivia", a: "fact" },
     ],
   },
-  jack: {
-    name: "Jackie the Jackrabbit", short: "Jackie", title: "Choose a course",
-    greet: "Hey! Jackie here. I hop between classes all day, so I know what Isaac is studying. Pick one and let's compare notes.",
+  bear: {
+    name: "The Bear (Baylor)", short: "the Bear", title: "Pick a project", school: "Baylor", token: "projects",
+    greet: "Hey. I'm the Bear, visiting from Baylor. If you want the full list of what Isaac builds, I'm your guide to the Dig Log.",
     cards: [
-      { t: "CS 4371", s: "Independent study", a: "Isaac's independent study with Dr. Yoonsik Cheon asks whether Javadoc documentation helps an LLM write better Java unit tests. It's in progress: a literature review, picking Java projects to test, and learning mutation testing (PIT) to measure the tests.", open: ["project", "javadoc-llm-tests", "Open the study"] },
-      { t: "B.S. Computer Science", s: "Major", a: "He's a Computer Science senior at The University of Texas at El Paso, with expected graduation in December 2026.", open: ["landmark", "library", "Resume"] },
-      { t: "Minor in Mathematics", s: "Minor", a: "Alongside the CS degree he's finishing a Minor in Mathematics at UTEP." },
+      { t: "The Dig Log", s: "All projects", a: "The Dig Log is the full list of Isaac's projects, research and jobs. Moreno Captures, ESPN Hub, Code Valkyrie and his independent study are all in there.", open: ["log", null, "Open the Dig Log"] },
+      { t: "Moreno Captures", s: "Full-stack app", a: "Moreno Captures is the web app for Isaac's photography business: a public photo gallery, a booking inquiry form, and an authenticated admin panel. Built with React, Vite and Supabase.", open: ["project", "moreno-captures", "Open project"] },
+      { t: "This site", s: "Playable portfolio", a: "The campus you are walking around is itself a project: original pixel art, vanilla HTML, CSS and JavaScript, with a plain recruiter page for the same content.", open: ["project", "this-site", "Open project"] },
     ],
   },
-  lizard: {
-    name: "Spike the Horned Lizard", short: "Spike", title: "Pick a story",
-    greet: "Psst. Spike here, the horned lizard. I sun myself by the museum and watch Isaac's photo work. Want the story?",
+  gator: {
+    name: "The Gator (Florida)", short: "the Gator", title: "Pick a story", school: "Florida", token: "experience",
+    greet: "Hey. The Gator here, in from Florida. I hang out by the museum and keep an eye on Isaac's photo work. Want the story?",
     cards: [
-      { t: "Moreno Captures", s: "Full-stack app", a: "Moreno Captures is the web app for Isaac's photography business: a public photo gallery, a booking inquiry form, and an authenticated admin panel. Built with React, Vite and Supabase.", open: ["project", "moreno-captures", "Open project"] },
       { t: "Disney PhotoPass", s: "Jun 2024 - Jan 2025", a: "In the Disney College Program Isaac was a Cast Member and PhotoPass photographer at Walt Disney World, shooting guests in a fast-paced setting with strict quality and turnaround standards.", open: ["project", "disney-photopass", "Open experience"] },
       { t: "Clear View Realty", s: "Jun 2021 - Jun 2023", a: "From 2021 to 2023 Isaac worked as a real estate agent in El Paso, handling pricing analysis, negotiations and contracts for clients.", open: ["project", "clear-view-realty", "Open experience"] },
+      { t: "Moreno Captures", s: "Full-stack app", a: "Moreno Captures is the web app for Isaac's photography business: a public photo gallery, a booking inquiry form, and an authenticated admin panel.", open: ["project", "moreno-captures", "Open project"] },
     ],
   },
-  coyote: {
-    name: "Coco the Coyote", short: "Coco", title: "Game day picks",
-    greet: "Ah-woo! Coco the coyote, guarding the Sun Bowl side. Isaac's sports and hackathon work lives over here. What do you want to see?",
+  longhorn: {
+    name: "The Longhorn (Texas)", short: "the Longhorn", title: "Choose a course", school: "Texas", token: "resume",
+    greet: "Hey there. I'm the Longhorn, visiting from Texas. I keep the paper trail straight: degree, minor, and the resume.",
+    cards: [
+      { t: "B.S. Computer Science", s: "Major", a: "He's a Computer Science senior at The University of Texas at El Paso, with expected graduation in December 2026.", open: ["landmark", "library", "Resume"] },
+      { t: "Minor in Mathematics", s: "Minor", a: "Alongside the CS degree he's finishing a Minor in Mathematics at UTEP." },
+      { t: "CS 4371", s: "Independent study", a: "Isaac's independent study with Dr. Yoonsik Cheon asks whether Javadoc documentation helps an LLM write better Java unit tests. It's in progress: a literature review, picking Java projects to test, and learning mutation testing (PIT) to measure the tests.", open: ["project", "javadoc-llm-tests", "Open the study"] },
+    ],
+  },
+  eagle: {
+    name: "The Eagle (North Texas)", short: "the Eagle", title: "Game day picks", school: "North Texas", token: "skills",
+    greet: "Hey. I'm the Eagle, visiting from North Texas. Isaac's sports work and skill tree live on this side of campus. What do you want to see?",
     cards: [
       { t: "ESPN Hub", s: "Web dashboard", a: "ESPN Hub is a multi-sport dashboard on ESPN's public REST APIs with live scores, standings and stats for the NFL, NBA and MLB. Built with React, Vite and Recharts.", open: ["project", "espn-hub", "Open project"] },
       { t: "Code Valkyrie", s: "UTEP Hackathon", a: "Code Valkyrie was a 48-hour UTEP hackathon team prototype that combines drone video, NLP on 911 transcripts and real-time risk scoring to help dispatchers assess threats.", open: ["project", "code-valkyrie", "Open project"] },
@@ -306,14 +316,43 @@ export const MASCOTS = {
   },
 };
 
-// Chispa, the roadrunner who follows you around.
+// Optional campus tour: talk to each host mascot for a token. Never blocks the rest of the site.
+export const QUEST = {
+  title: "Campus Tour",
+  intro: "Optional tour: talk to each host mascot.",
+  doneTitle: "You've seen it all",
+  doneBody: "Thanks for walking the campus tour. Download Isaac's resume or send him a note.",
+  steps: [
+    { id: "about", mascot: "miner", label: "About", objective: "Talk to Pete the Miner about Isaac", area: "main" },
+    { id: "projects", mascot: "bear", label: "Projects", objective: "Talk to the Bear about what Isaac builds", area: "main" },
+    { id: "experience", mascot: "gator", label: "Experience", objective: "Talk to the Gator about Isaac's work", area: "main" },
+    { id: "resume", mascot: "longhorn", label: "Resume", objective: "Talk to the Longhorn about Isaac's resume", area: "main" },
+    { id: "skills", mascot: "eagle", label: "Skills", objective: "Ride the Sun Metro, then talk to the Eagle about skills", area: "athletics" },
+  ],
+};
+
+// Visiting mascots who wander campus (short lines, not a full topic menu).
+export const VISITORS = {
+  aggie:   { name: "The Aggie (Texas A&M)", short: "the Aggie", line: "Howdy. I'm the Aggie, visiting from Texas A&M. Isaac's independent study lives in the Chemistry and Computer Science Building." },
+  frog:    { name: "The Horned Frog (TCU)", short: "the Horned Frog", line: "Hey. The Horned Frog, in from TCU. UTEP opened in 1914 as the Texas State School of Mines and Metallurgy. Wild, right?" },
+  cougar:  { name: "The Cougar (Houston)", short: "the Cougar", line: "Hey. I'm the Cougar, visiting from Houston. The Sun Metro stop at the south end of campus runs over to the Sun Bowl." },
+  raider:  { name: "The Raider (Texas Tech)", short: "the Raider", line: "Hey. The Raider, in from Texas Tech. Bhutanese-inspired architecture has been part of this campus since 1917. Look at those red bands." },
+  lobo:    { name: "The Lobo (New Mexico)", short: "the Lobo", line: "Hey. I'm the Lobo, just over the state line from New Mexico. In a hurry? The Skip game button shows everything on one page." },
+  mustang: { name: "The Mustang (SMU)", short: "the Mustang", line: "Hey. The Mustang, visiting from SMU. Press E next to a building or a host mascot to open Isaac's work." },
+  owl:     { name: "The Owl (Rice)", short: "the Owl", line: "Hey. I'm the Owl, visiting from Rice. The library holds Isaac's resume if you want the one-page version." },
+  runner:  { name: "The Roadrunner (UTSA)", short: "the Roadrunner", line: "Hey. The Roadrunner, in from UTSA. Adobe the cat will trail you around campus if you start walking." },
+  wildcat: { name: "The Wildcat (Arizona)", short: "the Wildcat", line: "Hey. I'm the Wildcat, visiting from Arizona. The Don Haskins Center on the athletics side holds Isaac's skill tree." },
+  panther: { name: "The Panther (Prairie View A&M)", short: "the Panther", line: "Hey. The Panther, in from Prairie View A&M. The Mining Minds sculpture on the Sun Bowl side is where you can send Isaac a note." },
+};
+
+// Adobe, the cat who follows you around.
 export const PET_TALK = {
-  name: "Chispa the Roadrunner", short: "Chispa", title: "Ask Chispa",
-  greet: "Meep meep! Chispa is the El Paso roadrunner that follows you around campus. Chispa keeps an eye on where you haven't been yet.",
+  name: "Adobe the Cat", short: "Adobe", title: "Ask Adobe",
+  greet: "Mrrp. Adobe is the campus cat who follows you around. Adobe keeps an eye on where you haven't been yet, and will purr if you pet them.",
   cards: [
-    { t: "Pet Chispa", s: "A good bird", a: "pet" },
+    { t: "Pet Adobe", s: "A good cat", a: "pet" },
     { t: "Where next?", s: "Unvisited places", a: "next" },
-    { t: "Roadrunner fact", s: "Desert bird", a: "Greater roadrunners live across the Chihuahuan Desert around El Paso. They can run around 20 miles per hour and would rather run than fly." },
+    { t: "Cat fact", s: "Campus companion", a: "Adobe is an original pixel cat made for this portfolio, named after the adobe brick you see all over El Paso." },
   ],
 };
 

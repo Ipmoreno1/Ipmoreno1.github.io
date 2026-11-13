@@ -1,10 +1,10 @@
 // main.js : game loop, input, movement, camera, lighting, weather and the bus.
-import * as A from "./art.js?v=16";
-import { buildAreas } from "./world.js?v=16";
-import { LANDMARKS, STUDENT_LINES, MASCOTS, PET_TALK } from "./data.js?v=16";
-import { makeMascot, portraitOf } from "./mascots.js?v=16";
-import { UI } from "./ui.js?v=16";
-import { Sound } from "./audio.js?v=16";
+import * as A from "./art.js?v=19";
+import { buildAreas } from "./world.js?v=19";
+import { LANDMARKS, MASCOTS, VISITORS, PET_TALK, QUEST } from "./data.js?v=19";
+import { makeMascot, portraitOf } from "./mascots.js?v=19";
+import { UI } from "./ui.js?v=19";
+import { Sound } from "./audio.js?v=19";
 
 const T = A.T;
 const $ = (s) => document.querySelector(s);
@@ -16,25 +16,55 @@ const state = {
   reduce: store.get("reduce", matchMedia("(prefers-reduced-motion: reduce)").matches), sound: false, busy: false, t: 0,
 };
 const { art, areas } = buildAreas();
-const chars = {
-  isaac: A.makeCharacter({ bg: "#f6d9a0", pal: { skin: "#c98d62", hair: "#2b1d16", shirt: "#e8742a", accent: "#1f3a6e", pants: "#2f3d5c", shoe: "#3a2a20" } }),
-  // original campus mascots (js/mascots.js?v=16)
-  miner: makeMascot("miner"), jack: makeMascot("jack"), lizard: makeMascot("lizard"), coyote: makeMascot("coyote"),
-  s0: A.makeCharacter({ backpack: "#2a9d8f", long: true, pal: { hair: "#6b3e22", shirt: "#2b4d8f", accent: "#ffffff", skin: "#e0ad84", pants: "#4a4a55" } }),
-  s1: A.makeCharacter({ cap: "#ff8200", backpack: "#d8502e", pal: { hair: "#e2c06a", shirt: "#f2f2ee", accent: "#ff8200", skin: "#f0c3a0" } }),
-  s2: A.makeCharacter({ backpack: "#1f3a6e", glasses: true, pal: { hair: "#151018", shirt: "#2a9d8f", accent: "#f2f2ee", skin: "#8d5a3c", pants: "#5a4a3a" } }),
-  s3: A.makeCharacter({ bun: true, pal: { hair: "#3a2418", shirt: "#ff8200", accent: "#1f3a6e", skin: "#d39a70", pants: "#3a4a6a" } }),
-  s4: A.makeCharacter({ backpack: "#e3b341", cap: "#1f3a6e", pal: { hair: "#20161a", shirt: "#1f3a6e", accent: "#ff8200", skin: "#b07a52" } }),
-  s5: A.makeCharacter({ long: true, pal: { hair: "#7a4a2a", shirt: "#8c2c1f", accent: "#efe2c0", skin: "#e8b894", pants: "#2f3d5c" } }),
-  s6: A.makeCharacter({ backpack: "#4f8a5a", pal: { hair: "#2a1a12", shirt: "#e9e9e4", accent: "#2a9d8f", skin: "#c98d62", pants: "#3a3a44" } }),
-  s7: A.makeCharacter({ glasses: true, pal: { hair: "#5a3a26", shirt: "#3f7f5a", accent: "#f2f2ee", skin: "#e0ad84", pants: "#2f3d5c" } }),
-  s8: A.makeCharacter({ backpack: "#ff8200", bun: true, pal: { hair: "#151018", shirt: "#c46ad0", accent: "#f7f1e1", skin: "#a8704c", pants: "#2f3d5c" } }),
-  s9: A.makeCharacter({ cap: "#2a9d8f", pal: { hair: "#3a2418", shirt: "#ff8200", accent: "#1f3a6e", skin: "#d39a70", pants: "#4a4a55" } }),
-};
-const bird = A.makeRoadrunner();
-const petPortrait = portraitOf(bird.right.idle[0], "#cfe3d1", 0, 0, -7);
-const NPC_NAMES = { miner: MASCOTS.miner.name, jack: MASCOTS.jack.name, lizard: MASCOTS.lizard.name, coyote: MASCOTS.coyote.name, s0: "Marisol, CS junior", s1: "Tyler, mechanical engineering", s2: "Andre, math minor", s3: "Priya, biology", s4: "Diego, kinesiology", s5: "Hannah, film", s6: "Luis, civil engineering", s7: "Sam, computer science", s8: "Noemi, chemistry", s9: "Rafa, sports management" };
+const HOST_IDS = ["miner", "bear", "gator", "longhorn", "eagle"];
+const VISITOR_IDS = Object.keys(VISITORS);
+const chars = {};
+for (const id of HOST_IDS) chars[id] = makeMascot(id);
+for (const id of VISITOR_IDS) chars[id] = makeMascot(id);
+const cat = A.makeCat();
+const petPortrait = portraitOf(cat.down.idle[0], "#e8d4b0", 0, 0, -4);
+const NPC_NAMES = Object.fromEntries([
+  ...HOST_IDS.map((id) => [id, MASCOTS[id].name]),
+  ...VISITOR_IDS.map((id) => [id, VISITORS[id].name]),
+]);
 const PET = PET_TALK.short;
+
+// ---------------------------------------------------------------- optional campus tour
+const Quest = {
+  data: store.get("quest", { started: false, done: false, got: {} }),
+  save() { store.set("quest", this.data); this.render(); },
+  count() { return QUEST.steps.filter((s) => this.data.got[s.id]).length; },
+  total() { return QUEST.steps.length; },
+  next() { return QUEST.steps.find((s) => !this.data.got[s.id]) || null; },
+  target() {
+    const step = this.next(); if (!step) return null;
+    if (step.area !== state.areaId) return area.bus ? { kind: "bus", x: area.bus.x, y: area.bus.y, label: "Sun Metro" } : null;
+    const n = npcs.find((o) => o.id === step.mascot); return n ? { kind: "npc", x: n.x, y: n.y, label: MASCOTS[step.mascot].short } : null;
+  },
+  collect(id) {
+    const step = QUEST.steps.find((s) => s.mascot === id); if (!step) return;
+    if (!this.data.started) this.data.started = true;
+    if (this.data.got[step.id]) { this.render(); return; }
+    this.data.got[step.id] = true;
+    const n = this.count();
+    UI.toast("Tour: " + step.label + " " + n + "/" + this.total() + ".");
+    if (n >= this.total() && !this.data.done) { this.data.done = true; this._pendingWin = true; this.save(); return; }
+    this.save();
+  },
+  reset() { this.data = { started: false, done: false, got: {} }; this.save(); UI.toast("Campus tour reset. Talk to a host mascot to begin again."); },
+  render() {
+    const hud = $("#quest-hud"); if (!hud) return;
+    const n = this.count(), tot = this.total(), step = this.next();
+    $("#quest-count").textContent = n + " of " + tot;
+    const dots = $("#quest-dots");
+    if (dots) dots.innerHTML = QUEST.steps.map((s) => `<span class="qdot${this.data.got[s.id] ? " on" : ""}" title="${s.label}"></span>`).join("");
+    $("#quest-obj").textContent = this.data.done ? "Tour complete. You can still explore." : (step ? step.objective : QUEST.intro);
+    const rst = $("#quest-reset"); if (rst) rst.hidden = !(this.data.started || this.data.done);
+    const again = $("#quest-again"); if (again) again.hidden = !this.data.done;
+    hud.hidden = false;
+  },
+  showWin() { UI.showQuestWin(this.data.done); },
+};
 
 // glow sprites for lights
 const glowSprite = (() => { const [c, g] = A.mk(64, 64); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(0.45, "rgba(255,255,255,0.55)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return c; })();
@@ -42,7 +72,7 @@ const tintGlow = (col) => { const [c, g] = A.mk(64, 64); const gr = g.createRadi
 const warmGlow = tintGlow("rgba(255,184,80,A)"), coolGlow = tintGlow("rgba(220,235,255,A)"), mmGlow = tintGlow("rgba(120,160,255,A)");
 
 // ---------------------------------------------------------------- entities
-const player = { x: 0, y: 0, dir: "down", dist: 0, moving: false, sprite: chars.isaac, trail: [] };
+const player = { x: 0, y: 0, dir: "down", dist: 0, moving: false, sprite: null, trail: [] };
 const pet = { x: 0, y: 0, dir: "right", frame: 0, moving: false, hop: 0 };
 let npcs = [];
 let area = areas.main;
@@ -116,7 +146,7 @@ function updatePet(dt) {
   const dx = tx - pet.x, dy = ty - pet.y, d = Math.hypot(dx, dy);
   pet.moving = d > 3;
   if (d > 140) { pet.x = tx; pet.y = ty; }
-  else if (pet.moving) { const sp = Math.min(d, (d > 30 ? 150 : 95) * dt); pet.x += (dx / d) * sp; pet.y += (dy / d) * sp; if (Math.abs(dx) > 1) pet.dir = dx > 0 ? "right" : "left"; pet.frame += dt * 12; }
+  else if (pet.moving) { const sp = Math.min(d, (d > 30 ? 150 : 95) * dt); pet.x += (dx / d) * sp; pet.y += (dy / d) * sp; pet.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"); pet.frame += dt * 12; }
   else { pet.frame = 0; }
   if (pet.hop > 0) pet.hop -= dt;
 }
@@ -127,11 +157,24 @@ function updateNPCs(dt) {
     if (n.wait > 0) { n.wait -= dt; n.moving = false; continue; }
     const dx = n.tx - n.x, dy = n.ty - n.y, d = Math.hypot(dx, dy);
     if (d < 2 && n.route) { const p = n.route[n.leg % n.route.length]; n.leg++; n.tx = p[0] * T + 8; n.ty = p[1] * T + 12; if (Math.random() < 0.3) n.wait = 1 + Math.random() * 2; continue; }
-    if (d < 2) { n.wait = 1.5 + Math.random() * 3.5; const gx = n.home[0] + Math.round((Math.random() * 2 - 1) * n.wander), gy = n.home[1] + Math.round((Math.random() * 2 - 1) * n.wander * 0.6); if (area.free(gx, gy) && !area.isSolid(gx, gy - 1)) { n.tx = gx * T + 8; n.ty = gy * T + 12; } continue; }
+    if (d < 2) {
+      n.wait = 1.5 + Math.random() * 3.5;
+      for (let tries = 0; tries < 8; tries++) {
+        const gx = n.home[0] + Math.round((Math.random() * 2 - 1) * n.wander), gy = n.home[1] + Math.round((Math.random() * 2 - 1) * n.wander * 0.6);
+        const occupied = npcs.some((o) => o !== n && Math.hypot(o.x - (gx * T + 8), o.y - (gy * T + 12)) < 28);
+        if (area.free(gx, gy) && !area.isSolid(gx, gy - 1) && !occupied) { n.tx = gx * T + 8; n.ty = gy * T + 12; break; }
+      }
+      continue;
+    }
     const sp = (n.route ? 34 : 28) * dt; const mx = Math.abs(dx) > 1 ? Math.sign(dx) * Math.min(sp, Math.abs(dx)) : 0; const my = mx ? 0 : Math.sign(dy) * Math.min(sp, Math.abs(dy));
     n.dir = mx ? (mx > 0 ? "right" : "left") : my > 0 ? "down" : "up";
     if (!moveEnt(n, mx, my)) { if (n.route) { n.wait = 0.4; if (Math.abs(dx) > 1) { if (!moveEnt(n, 0, Math.sign(dy || 1) * sp)) n.leg++; } else if (!moveEnt(n, Math.sign(dx || 1) * sp, 0)) n.leg++; } else { n.tx = n.x; n.ty = n.y; n.wait = 1; } }
     n.moving = true; n.dist += sp;
+  }
+  // keep mascots from stacking on top of each other
+  for (let i = 0; i < npcs.length; i++) for (let j = i + 1; j < npcs.length; j++) {
+    const a = npcs[i], b = npcs[j]; const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+    if (d > 0.01 && d < 22) { const push = (22 - d) * 0.25, ux = dx / d, uy = dy / d; a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push; }
   }
 }
 
@@ -140,7 +183,7 @@ let target = null;
 function findTarget() {
   let best = null, bd = 1e9;
   const consider = (kind, obj, d, r) => { if (d < r && d / r < bd) { bd = d / r; best = { kind, obj }; } };
-  for (const n of npcs) consider("npc", n, Math.hypot(player.x - n.x, player.y - n.y), 28);
+  for (const n of npcs) consider("npc", n, Math.hypot(player.x - n.x, player.y - n.y), 34);
   consider("pet", pet, Math.hypot(player.x - pet.x, player.y - pet.y) * 1.4 + 4, 40);
   for (const l of area.landmarks) consider("landmark", l, Math.hypot(player.x - l.x, player.y - l.y), l.r);
   if (area.bus) consider("bus", area.bus, Math.hypot(player.x - area.bus.x, player.y - area.bus.y), area.bus.r);
@@ -148,7 +191,7 @@ function findTarget() {
 }
 function targetLabel(t) {
   if (!t) return null;
-  if (t.kind === "npc") return "Talk to " + (MASCOTS[t.obj.id] ? MASCOTS[t.obj.id].short : NPC_NAMES[t.obj.id].split(",")[0]);
+  if (t.kind === "npc") return "Talk to " + (MASCOTS[t.obj.id] ? MASCOTS[t.obj.id].short : (VISITORS[t.obj.id] ? VISITORS[t.obj.id].short : NPC_NAMES[t.obj.id]));
   if (t.kind === "pet") return "Talk to " + PET;
   if (t.kind === "bus") return "Ride the Sun Metro";
   return "Open " + t.obj.label;
@@ -157,12 +200,12 @@ function interact() {
   if (UI.isOpen() || state.busy) return;
   const t = target; if (!t) { UI.toast("Nothing to interact with here. Walk up to a building, a person, or " + PET + "."); return; }
   Sound.blip("open");
-  if (t.kind === "npc") { const id = t.obj.id; if (MASCOTS[id]) UI.open("npc", { id, mascot: id, name: MASCOTS[id].name, portrait: chars[id].portrait }); else UI.open("npc", { id, name: NPC_NAMES[id], portrait: chars[id].portrait, line: STUDENT_LINES[parseInt(id.slice(1)) % STUDENT_LINES.length] }); }
+  if (t.kind === "npc") { const id = t.obj.id; if (MASCOTS[id]) { Quest.collect(id); UI.open("npc", { id, mascot: id, name: MASCOTS[id].name, portrait: chars[id].portrait }); } else UI.open("npc", { id, name: NPC_NAMES[id], portrait: chars[id].portrait, line: (VISITORS[id] && VISITORS[id].line) || "Hey. Nice campus, right?" }); }
   else if (t.kind === "pet") UI.open("npc", { id: "pet", pet: true, name: PET_TALK.name, portrait: petPortrait });
   else if (t.kind === "bus") rideBus(state.areaId === "main" ? "athletics" : "main");
   else UI.open("landmark", t.obj.id);
 }
-function petBird() { pet.hop = 0.6; hearts.push({ x: pet.x, y: pet.y - 24, t: 0 }); Sound.blip("pet"); if (!UI.isOpen()) UI.toast(PET + " the roadrunner fluffs up its crest and does a happy little hop."); }
+function petBird() { pet.hop = 0.6; hearts.push({ x: pet.x, y: pet.y - 18, t: 0 }); Sound.blip("pet"); if (!UI.isOpen()) UI.toast(PET + " the cat leans into your hand and purrs, then does a happy little hop."); }
 const hearts = [];
 
 // ---------------------------------------------------------------- bus transition
@@ -271,12 +314,12 @@ function render(dt) {
   // shadows
   vg.fillStyle = "rgba(34,22,34,0.26)";
   for (const o of list) if (o.shadow) { vg.beginPath(); vg.ellipse(o.fx - ix + 2, o.fy - iy - 1, o.shadow[0], o.shadow[1], 0, 0, 7); vg.fill(); }
-  for (const en of ents) { vg.beginPath(); vg.ellipse(en.e.x - ix, en.e.y - iy - 1, en.kind === "pet" ? 7 : 8, 3, 0, 0, 7); vg.fill(); }
+  for (const en of ents) { vg.beginPath(); vg.ellipse(en.e.x - ix, en.e.y - iy - 1, en.kind === "pet" ? 7 : 10, 3, 0, 0, 7); vg.fill(); }
   const all = list.concat(ents).sort((a, b) => a.sortY - b.sortY);
   for (const d of all) {
-    if (d.kind === "player") { const f = player.moving ? Math.floor(player.dist / 7) % 4 : 0; drawChar(player, chars.isaac, f); }
+    if (d.kind === "player") { const f = player.moving ? Math.floor(player.dist / 7) % 4 : 1; drawChar(player, chars.isaac, f); }
     else if (d.kind === "npc") { const n = d.e; const f = n.moving ? Math.floor(n.dist / 7) % 4 : 0; drawChar(n, n.sprite, f); }
-    else if (d.kind === "pet") { const set = bird[pet.dir]; let im; if (pet.moving) im = set.walk[Math.floor(pet.frame) % 3]; else { const seq = [0, 0, 0, 1, 1, 0, 0, 2, 0, 0, 3, 0, 3, 0]; im = set.idle[state.reduce ? 0 : seq[Math.floor(t * 3) % seq.length]]; } const hop = pet.hop > 0 ? -Math.round(Math.sin(pet.hop * 10) * 3 + 3) : 0; vg.drawImage(im, Math.round(pet.x - 16 - ix), Math.round(pet.y - 22 - iy + hop)); }
+    else if (d.kind === "pet") { const set = cat[pet.dir] || cat.right; let im; if (pet.moving) im = set.walk[Math.floor(pet.frame) % 4]; else { const seq = [0, 0, 0, 1, 1, 0, 0, 2, 0, 0, 3, 0, 3, 0]; im = set.idle[state.reduce ? 0 : seq[Math.floor(t * 3) % seq.length]]; } const hop = pet.hop > 0 ? -Math.round(Math.sin(pet.hop * 10) * 3 + 3) : 0; vg.drawImage(im, Math.round(pet.x - 16 - ix), Math.round(pet.y - 22 - iy + hop)); }
     else { const o = d; const fi = o.frames.length > 1 && !state.reduce ? Math.floor(t * (o.rate || 1) + o.phase) % o.frames.length : 0; vg.drawImage(o.frames[fi], o.x - ix, o.y - iy); }
   }
   // weather tint (under the light pass)
@@ -328,6 +371,7 @@ function render(dt) {
   // markers: "!" over people, hearts
   for (const n of npcs) { const bob = state.reduce ? 0 : Math.round(Math.sin(t * 4 + n.x) * 1); bubble(Math.round(n.x - ix), Math.round(n.y - 47 - ((n.sprite.foot ?? 34) - 34) - iy + bob)); }
   for (let i = hearts.length - 1; i >= 0; i--) { const h = hearts[i]; h.t += dt; if (h.t > 1.2) { hearts.splice(i, 1); continue; } heart(Math.round(h.x - ix), Math.round(h.y - iy - h.t * 14)); }
+  drawQuestHint(vg, ix, iy, vw, vh);
   // interact highlight
   if (target && target.kind === "landmark") { const l = target.obj; const a = 0.5 + Math.sin(t * 5) * 0.3; vg.fillStyle = `rgba(255,217,106,${a})`; vg.fillRect(Math.round(l.x - 9 - ix), Math.round(l.y - 2 - iy), 18, 1); vg.fillRect(Math.round(l.x - 7 - ix), Math.round(l.y + 1 - iy), 14, 1); }
   // blit
@@ -360,6 +404,30 @@ function frame(now) {
 }
 
 // ---------------------------------------------------------------- public API (UI + tests)
+function drawQuestHint(vg, ix, iy, vw, vh) {
+  const tgt = Quest.target(); if (!tgt || state.busy) return;
+  const step = Quest.next(); if (!step) return;
+  const dx = tgt.x - (camX + vw / 2), dy = tgt.y - (camY + (vh - (($("#dock")?.offsetHeight) || 96) / (window.devicePixelRatio ? 1 : 1)) / 2);
+  // marker in world if on screen, otherwise an edge arrow
+  const sx = Math.round(tgt.x - ix), sy = Math.round(tgt.y - 52 - iy);
+  const pad = 18;
+  const on = sx > pad && sx < vw - pad && sy > pad && sy < vh - 80;
+  vg.save();
+  if (on) {
+    const bob = state.reduce ? 0 : Math.round(Math.sin(state.t * 6) * 2);
+    vg.fillStyle = "#f2c94c"; vg.strokeStyle = "#3a2a10"; vg.lineWidth = 1;
+    vg.beginPath(); vg.moveTo(sx, sy + bob); vg.lineTo(sx - 5, sy - 8 + bob); vg.lineTo(sx + 5, sy - 8 + bob); vg.closePath(); vg.fill(); vg.stroke();
+  } else {
+    const ang = Math.atan2(tgt.y - player.y, tgt.x - player.x);
+    const cx = Math.max(pad, Math.min(vw - pad, vw / 2 + Math.cos(ang) * (vw * 0.38)));
+    const cy = Math.max(pad + 40, Math.min(vh - 100, (vh - 90) / 2 + Math.sin(ang) * (vh * 0.28)));
+    vg.translate(cx, cy); vg.rotate(ang);
+    vg.fillStyle = "#f2c94c"; vg.strokeStyle = "#3a2a10"; vg.lineWidth = 1;
+    vg.beginPath(); vg.moveTo(8, 0); vg.lineTo(-6, -6); vg.lineTo(-6, 6); vg.closePath(); vg.fill(); vg.stroke();
+  }
+  vg.restore();
+}
+
 export const Game = {
   state, areas, art, chars,
   get area() { return area; }, get player() { return player; }, get pet() { return pet; }, get npcs() { return npcs; },
@@ -375,14 +443,24 @@ export const Game = {
   },
   landmarkArea(id) { for (const [aid, a] of Object.entries(areas)) if (a.landmarks.some((x) => x.id === id)) return aid; return null; },
   teleport(aid, x, y) { if (aid !== state.areaId) enterArea(aid, { x, y }); else { player.x = x; player.y = y; } snapCam = true; },
-  interact, petBird, get target() { return target ? { kind: target.kind, id: target.obj.id || null, label: targetLabel(target) } : null; },
+  interact, petBird, Quest, get target() { return target ? { kind: target.kind, id: target.obj.id || null, label: targetLabel(target) } : null; },
   fps() { const a = fpsS.reduce((s, v) => s + v, 0) / Math.max(1, fpsS.length); return Math.round(1 / a); },
   get scale() { return scale; },
 };
 window.__game = Game; window.__ui = UI;
 
-UI.init(Game);
-Game.setReduce(state.reduce);
-resize(); enterArea("main");
-requestAnimationFrame(frame);
-document.documentElement.classList.add("ready");
+$("#quest-reset")?.addEventListener("click", () => Quest.reset());
+$("#quest-again")?.addEventListener("click", () => Quest.showWin());
+
+async function start() {
+  chars.isaac = await A.loadIsaac();
+  player.sprite = chars.isaac;
+  UI.init(Game);
+  Game.setReduce(state.reduce);
+  Quest.render();
+  globalThis.Game = Game;
+  resize(); enterArea("main");
+  requestAnimationFrame(frame);
+  document.documentElement.classList.add("ready");
+}
+start().catch((err) => console.error(err));

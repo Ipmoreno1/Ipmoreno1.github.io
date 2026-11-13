@@ -125,6 +125,11 @@ function chibi(spec, dir, f) {
     // torso
     R(7, 19 + bob, 10, 8, sh); R(7, 19 + bob, 1, 8, shL); R(15, 19 + bob, 2, 8, shD); R(7, 26 + bob, 10, 1, paD);
     if (front) { R(10, 19 + bob, 4, 1, P.accent); X(11, 20 + bob, P.accent); X(12, 20 + bob, P.accent); if (spec.logo) { R(9, 22 + bob, 2, 2, spec.logo); } }
+    if (front && spec.jacket) {
+      const col = spec.collar || "#f4eee4", tie = spec.tie || "#3a322e";
+      R(9, 19 + bob, 6, 2, col); R(8, 19 + bob, 2, 3, col); R(14, 19 + bob, 2, 3, col);
+      R(11, 20 + bob, 2, 6, tie); X(11, 20 + bob, shade(tie, 0.25));
+    }
     if (spec.overalls) { R(8, 22 + bob, 8, 5, spec.overalls); R(8, 19 + bob, 1, 3, spec.overalls); R(15, 19 + bob, 1, 3, spec.overalls); R(8, 22 + bob, 8, 1, shade(spec.overalls, 0.2)); if (front) { X(9, 22 + bob, "#e3b341"); X(14, 22 + bob, "#e3b341"); R(10, 23 + bob, 4, 2, shade(spec.overalls, -0.15)); } }
     if (spec.plaid) for (let y = 19; y < 26; y++) for (let x = 7; x < 17; x++) if ((x + y) % 3 === 0 && !(spec.overalls && y >= 22 && x >= 8 && x < 16)) X(x, y + bob, shD);
     if (!front && spec.backpack) { R(8, 20 + bob, 8, 6, spec.backpack); R(8, 20 + bob, 8, 1, shade(spec.backpack, 0.3)); R(9, 23 + bob, 6, 1, shade(spec.backpack, -0.3)); }
@@ -140,12 +145,23 @@ function chibi(spec, dir, f) {
         HEAD.slice(0, 6).forEach((wd, j) => R(12 - wd / 2, 3 + j + bob, wd, 1, hr));
         R(4, 9 + bob, 16, 1, hr); for (const x of [6, 9, 13, 16]) X(x, 10 + bob, hr); R(4, 9 + bob, 2, spec.long ? 13 : 4, hr); R(18, 9 + bob, 2, spec.long ? 13 : 4, hr);
         R(7, 5 + bob, 4, 1, hrL); X(6, 6 + bob, hrL); R(4, 8 + bob, 16, 1, hrD);
+        if (spec.wavy) {
+          // medium wavy hair like the bust: volume on top, slight side curls, not a wide afro
+          R(6, 2 + bob, 12, 2, hr); R(5, 3 + bob, 14, 5, hr); R(4, 5 + bob, 16, 5, hr);
+          R(3, 7 + bob, 2, 6, hr); R(3, 12 + bob, 2, 3, hr); // left sideburn/curl
+          R(19, 7 + bob, 2, 6, hr); R(19, 12 + bob, 2, 3, hr); // right
+          X(5, 6 + bob, hr); X(18, 6 + bob, hr);
+          X(8, 9 + bob, hr); X(9, 10 + bob, hr); X(14, 9 + bob, hr); X(15, 10 + bob, hr); // forehead curls
+          R(8, 3 + bob, 3, 2, hrL); X(6, 5 + bob, hrL); X(16, 4 + bob, hrL);
+          R(4, 11 + bob, 1, 1, hrD); R(19, 11 + bob, 1, 1, hrD);
+        }
         if (spec.cap) { HEAD.slice(0, 5).forEach((wd, j) => R(12 - wd / 2, 3 + j + bob, wd, 1, spec.cap)); R(4, 8 + bob, 16, 1, shade(spec.cap, -0.3)); R(6, 9 + bob, 12, 1, shade(spec.cap, -0.15)); R(8, 4 + bob, 3, 1, shade(spec.cap, 0.3)); }
         if (spec.bun) { R(9, 0 + bob, 6, 3, hr); R(10, 0 + bob, 2, 1, hrL); }
         // face
         R(7, 11 + bob, 2, 3, P.eye); R(15, 11 + bob, 2, 3, P.eye); X(8, 11 + bob, "#ffffff"); X(16, 11 + bob, "#ffffff");
         if (spec.glasses) { R(6, 11 + bob, 4, 1, "#2a2a30"); R(14, 11 + bob, 4, 1, "#2a2a30"); R(10, 11 + bob, 4, 1, "#2a2a30"); }
         X(6, 14 + bob, P.blush); X(17, 14 + bob, P.blush); R(11, 15 + bob, 2, 1, P.mouth); X(11, 13 + bob, skD);
+        if (spec.mustache) { R(8, 14 + bob, 3, 1, hrD); R(13, 14 + bob, 3, 1, hrD); X(7, 14 + bob, hr); X(16, 14 + bob, hr); R(10, 15 + bob, 4, 1, P.mouth); }
       } else {
         // Paydirt Pete: wide-brim hat, bushy white beard, big nose
         R(7, 0 + bob, 10, 6, spec.hat); R(7, 0 + bob, 10, 1, shade(spec.hat, 0.25)); R(7, 4 + bob, 10, 2, "#ff8200"); R(15, 0 + bob, 2, 4, shade(spec.hat, -0.2));
@@ -162,6 +178,11 @@ function chibi(spec, dir, f) {
         HEAD.forEach((wd, j) => { if (j < 14) R(12 - wd / 2, 3 + j + bob, wd, 1, hr); });
         R(7, 5 + bob, 6, 1, hrL); R(6, 6 + bob, 2, 1, hrL); R(17, 6 + bob, 2, 9, hrD); R(5, 16 + bob, 14, 1, hrD);
         if (spec.long) R(5, 17 + bob, 14, 5, hr);
+        if (spec.wavy) {
+          R(6, 2 + bob, 12, 2, hr); R(5, 3 + bob, 14, 12, hr);
+          R(3, 7 + bob, 2, 7, hr); R(19, 7 + bob, 2, 7, hr);
+          R(8, 3 + bob, 4, 2, hrL); R(5, 16 + bob, 14, 2, hrD);
+        }
         if (spec.cap) { HEAD.slice(0, 6).forEach((wd, j) => R(12 - wd / 2, 3 + j + bob, wd, 1, spec.cap)); R(10, 8 + bob, 4, 1, shade(spec.cap, -0.3)); }
         if (spec.bun) { R(9, 0 + bob, 6, 3, hr); }
       } else {
@@ -181,6 +202,7 @@ function chibi(spec, dir, f) {
     R(legF, 27, 3, 4, pa); R(legF, 31, 4, 2, P.shoe); R(legF, 31, 4, 1, shade(P.shoe, 0.25));
     // body
     R(8, 19 + bob, 8, 8, sh); R(8, 19 + bob, 1, 8, shL); R(14, 19 + bob, 2, 8, shD); R(8, 26 + bob, 8, 1, paD);
+    if (spec.jacket) { R(13, 19 + bob, 3, 2, spec.collar || "#f4eee4"); R(14, 20 + bob, 1, 5, spec.tie || "#3a322e"); }
     if (spec.plaid) for (let y = 19; y < 26; y++) for (let x = 8; x < 16; x++) if ((x + y) % 3 === 0) X(x, y + bob, shD);
     if (spec.overalls) { R(9, 22 + bob, 7, 5, spec.overalls); R(12, 19 + bob, 1, 3, spec.overalls); }
     if (spec.backpack) { R(5, 20 + bob, 3, 6, spec.backpack); R(5, 20 + bob, 3, 1, shade(spec.backpack, 0.3)); }
@@ -191,6 +213,12 @@ function chibi(spec, dir, f) {
     if (!mascot) {
       HEAD.slice(0, 6).forEach((wd, j) => R(12 - (wd - 2) / 2, 3 + j + bob, wd - 2, 1, hr));
       R(5, 9 + bob, 7, spec.long ? 13 : 6, hr); R(12, 9 + bob, 6, 1, hr); X(16, 10 + bob, hr); R(6, 5 + bob, 5, 1, hrL); R(5, 14 + bob, 3, 1, hrD);
+      if (spec.wavy) {
+        R(6, 2 + bob, 10, 3, hr); R(5, 4 + bob, 12, 5, hr);
+        R(4, 8 + bob, 5, 7, hr); R(15, 8 + bob, 3, 2, hr);
+        R(7, 3 + bob, 4, 2, hrL); R(4, 14 + bob, 6, 2, hr);
+        if (spec.mustache) { R(16, 14 + bob, 3, 1, hrD); X(15, 14 + bob, hrD); }
+      }
       if (spec.cap) { HEAD.slice(0, 5).forEach((wd, j) => R(12 - (wd - 2) / 2, 3 + j + bob, wd - 2, 1, spec.cap)); R(12, 8 + bob, 9, 1, shade(spec.cap, -0.2)); }
       if (spec.bun) R(4, 2 + bob, 5, 4, hr);
       R(10, 11 + bob, 1, 3, skD); // ear
@@ -223,7 +251,126 @@ export function makeCharacter(spec) {
   return out;
 }
 
-// Chispa the roadrunner: 32x24, faces right. frames.walk[3], frames.idle[4]; left versions mirrored
+// Isaac's walk sprite comes from assets/isaac-walk.png (a keyed, quantized
+// sheet of his bust-matched chibi). 4 directions x 4 frames, feet at ISAAC_FOOT.
+// Idle should use frame 1 (the standing pose); frames are step, stand, step, stand.
+export const ISAAC_W = 39, ISAAC_H = 69, ISAAC_FOOT = 66;
+export const ISAAC_SHEET = "assets/isaac-walk.png?v=19";
+
+function sliceIsaacFrame(img, col, row) {
+  const [c, g] = mk(ISAAC_W, ISAAC_H);
+  g.imageSmoothingEnabled = false;
+  g.drawImage(img, col * ISAAC_W, row * ISAAC_H, ISAAC_W, ISAAC_H, 0, 0, ISAAC_W, ISAAC_H);
+  return c;
+}
+
+export function makeIsaacFromImage(img) {
+  const rows = { down: 0, left: 1, right: 2, up: 3 };
+  const out = { down: [], left: [], right: [], up: [], foot: ISAAC_FOOT };
+  for (const [dir, r] of Object.entries(rows)) {
+    for (let f = 0; f < 4; f++) out[dir].push(sliceIsaacFrame(img, f, r));
+  }
+  const [pc, pg] = mk(32, 32);
+  const bg = "#d1e3d3";
+  rect(pg, 0, 0, 32, 32, bg);
+  for (let y = 0; y < 32; y += 2) rect(pg, 0, y, 32, 1, shade(bg, -0.04));
+  pg.imageSmoothingEnabled = false;
+  // Head crop of the front standing frame (frame 1)
+  pg.drawImage(out.down[1], 3, 1, 33, 33, 0, 0, 32, 32);
+  out.portrait = pc;
+  return out;
+}
+
+export function loadIsaac() {
+  return new Promise((resolve, reject) => {
+    const im = new Image();
+    im.decoding = "async";
+    im.onload = () => resolve(makeIsaacFromImage(im));
+    im.onerror = () => reject(new Error("Failed to load " + ISAAC_SHEET));
+    im.src = ISAAC_SHEET;
+  });
+}
+
+
+// Adobe the cat: 32x24, 4 directions, walk[4] and idle[4]. Feet near y=22.
+export function makeCat() {
+  const pal = { f: "#c4844a", F: "#8a5a32", L: "#e2b07a", b: "#f0d4b0", w: "#f7efe4", e: "#2a5a28", n: "#e8a0a0", k: "#1b1626", s: "#6a3a22" };
+  const draw = (dir, mode, f) => {
+    const [c, g] = mk(32, 24); const P2 = (x, y, col) => px(g, x, y, col);
+    const bob = mode === "walk" && (f === 1 || f === 3) ? -1 : 0;
+    const tail = mode === "idle" ? Math.round(Math.sin(f * 1.2) * 2) : (f === 1 ? 1 : f === 3 ? -1 : 0);
+    const stripe = (x, y, w) => { for (let i = 0; i < w; i++) if (i % 2 === 0) P2(x + i, y, pal.F); };
+    if (dir === "down" || dir === "up") {
+      const front = dir === "down";
+      // tail
+      const tx = 15, ty = 16 + bob;
+      if (!front) { for (let t = 0; t < 7; t++) rect(g, tx - 1, ty - t, 3, 1, t % 2 ? pal.F : pal.f); P2(tx, ty - 7, pal.L); }
+      else { for (let t = 0; t < 4; t++) rect(g, 22 + Math.round(t * 0.2) , 14 + bob + (t > 1 ? 1 : 0) - (tail > 0 && t > 2 ? 1 : 0), 2, 1, t % 2 ? pal.F : pal.f); }
+      // body
+      rect(g, 10, 11 + bob, 12, 8, pal.f); rect(g, 11, 12 + bob, 10, 6, pal.L);
+      if (front) rect(g, 12, 13 + bob, 8, 5, pal.b);
+      stripe(12, 12 + bob, 8); stripe(11, 14 + bob, 10);
+      // legs
+      const lL = mode === "walk" && f === 1 ? 1 : 0, lR = mode === "walk" && f === 3 ? 1 : 0;
+      rect(g, 11, 18 + bob, 3, 3 - lL, pal.f); rect(g, 11, 20 + bob - lL, 3, 2, pal.w);
+      rect(g, 18, 18 + bob, 3, 3 - lR, pal.F); rect(g, 18, 20 + bob - lR, 3, 2, pal.w);
+      // head
+      const hy = 4 + bob;
+      rect(g, 10, hy + 2, 12, 8, pal.f); rect(g, 11, hy + 3, 10, 6, pal.L);
+      // ears
+      P2(11, hy, pal.f); rect(g, 10, hy + 1, 3, 2, pal.f); P2(11, hy + 2, pal.n);
+      P2(20, hy, pal.f); rect(g, 19, hy + 1, 3, 2, pal.F); P2(20, hy + 2, pal.n);
+      if (front) {
+        rect(g, 12, hy + 6, 8, 4, pal.b); P2(15, hy + 7, pal.n); P2(16, hy + 7, pal.n);
+        rect(g, 13, hy + 5, 2, 2, pal.k); rect(g, 17, hy + 5, 2, 2, pal.k); P2(13, hy + 5, pal.e); P2(17, hy + 5, pal.e);
+        P2(14, hy + 9, pal.k); P2(17, hy + 9, pal.k);
+        stripe(12, hy + 3, 8);
+      } else {
+        rect(g, 11, hy + 2, 10, 7, pal.F); stripe(12, hy + 3, 8);
+      }
+    } else {
+      // right-facing (left is mirrored)
+      const st = mode === "walk" ? [0, 1, 0, -1][f] : 0;
+      // tail
+      for (let t = 0; t < 9; t++) {
+        const x = 7 - t, y = 13 + bob - Math.round((t + tail) * 0.4) - (t > 5 ? 1 : 0);
+        rect(g, x, y, 2, 2, t % 2 ? pal.F : pal.f);
+        if (t > 6) P2(x, y, pal.L);
+      }
+      // body
+      rect(g, 10, 11 + bob, 13, 8, pal.f); rect(g, 11, 12 + bob, 11, 6, pal.L);
+      rect(g, 12, 14 + bob, 9, 4, pal.b);
+      stripe(12, 12 + bob, 9); stripe(13, 15 + bob, 8);
+      // legs
+      const f1 = 13 + st * 2, b1 = 18 - st * 2, f2 = 12 - st, b2 = 19 + st;
+      for (const [lx, dark] of [[f1, false], [b1, true], [f2, false], [b2, true]]) {
+        rect(g, lx, 17 + bob, 2, 4, dark ? pal.F : pal.f); P2(lx, 21 + bob, pal.w); P2(lx + 1, 21 + bob, pal.w);
+      }
+      // head
+      const hx = 22, hy = 6 + bob;
+      rect(g, hx - 4, hy, 8, 8, pal.f); rect(g, hx - 3, hy + 1, 6, 6, pal.L);
+      rect(g, hx - 1, hy + 4, 6, 4, pal.b);
+      // ears
+      rect(g, hx - 4, hy - 2, 3, 3, pal.f); P2(hx - 3, hy - 1, pal.n); P2(hx - 4, hy - 3, pal.F);
+      rect(g, hx + 1, hy - 3, 3, 3, pal.F); P2(hx + 2, hy - 2, pal.n);
+      P2(hx + 1, hy + 3, pal.k); P2(hx + 1, hy + 2, pal.e); P2(hx + 3, hy + 5, pal.n);
+      P2(hx - 2, hy + 1, pal.F); stripe(hx - 3, hy, 5);
+    }
+    return outline(c);
+  };
+  const fr = { right: { walk: [], idle: [] }, left: { walk: [], idle: [] }, down: { walk: [], idle: [] }, up: { walk: [], idle: [] } };
+  const flip = (s) => { const [c, g] = mk(32, 24); g.translate(32, 0); g.scale(-1, 1); g.drawImage(s, 0, 0); return c; };
+  for (let f = 0; f < 4; f++) {
+    for (const dir of ["down", "up", "right"]) {
+      const w = draw(dir, "walk", f), i = draw(dir, "idle", f);
+      fr[dir].walk.push(w); fr[dir].idle.push(i);
+    }
+    fr.left.walk.push(flip(fr.right.walk[f])); fr.left.idle.push(flip(fr.right.idle[f]));
+  }
+  return fr;
+}
+
+// Unused roadrunner sprite (kept for reference): 32x24, faces right. frames.walk[3], frames.idle[4]; left versions mirrored
 export function makeRoadrunner() {
   const pal = { k: "#7a5a3a", K: "#4a3424", L: "#a8865a", w: "#efe4cf", e: "#151515", b: "#4a4a52", y: "#6f84a6", r: "#e0703a", c: "#2f3a5a" };
   const draw = (mode, f) => {

@@ -2,7 +2,7 @@
 // Every building is a set of blocks. Each block has a roof seen from above, a fascia with painted rafter ends,
 // a dark red brick kemar band with mosaic mandalas, battered (inward-sloping) stucco or brick walls with deep
 // trapezoid windows, a stone plinth, and optional glass bays, towers, porticos, awnings and foundation shrubs.
-import { mk, rng, hash2, shade, mix, outline, text3, text3w } from "./art.js?v=16";
+import { mk, rng, hash2, shade, mix, outline, text3, text3w } from "./art.js?v=19";
 
 const px = (g, x, y, c) => { g.fillStyle = c; g.fillRect(x, y, 1, 1); };
 const rect = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };

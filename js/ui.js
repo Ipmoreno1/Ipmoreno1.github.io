@@ -1,5 +1,5 @@
 // ui.js : HUD, signs, toasts and every panel (Dig Log, project detail, landmarks, map, MinerDex, contact, help, dialogue).
-import { PROFILE, DEX, ABOUT, EDUCATION, PROJECTS, EXPERIENCE_IDS, SKILLS, INTERESTS, LANDMARKS, CAMPUS_FACTS, MASCOTS, PET_TALK, SITE } from "./data.js?v=16";
+import { PROFILE, DEX, ABOUT, EDUCATION, PROJECTS, EXPERIENCE_IDS, SKILLS, INTERESTS, LANDMARKS, CAMPUS_FACTS, MASCOTS, PET_TALK, SITE, QUEST } from "./data.js?v=19";
 
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -21,10 +21,10 @@ const AREA_NAME = { main: "Main Campus", athletics: "Sun Bowl & Athletics" };
 // sprites (whole-number scale, smoothing off), then the in-code character portrait.
 const HI = (window.devicePixelRatio || 1) >= 1.5;
 const img = (src) => { const i = new Image(); i.decoding = "async"; i.src = src; return i; };
-const AV_HD = img(HI ? "assets/isaac-portrait-hd@2x.png?v=16" : "assets/isaac-portrait-hd.png?v=16");
-const AV_HUD = img(HI ? "assets/isaac-portrait-hud@2x.png?v=16" : "assets/isaac-portrait-hud.png?v=16");
-const AVATAR = img("assets/isaac-portrait.png?v=16");
-const AVATAR32 = img("assets/isaac-portrait-32.png?v=16");
+const AV_HD = img(HI ? "assets/isaac-portrait-hd@2x.png?v=19" : "assets/isaac-portrait-hd.png?v=19");
+const AV_HUD = img(HI ? "assets/isaac-portrait-hud@2x.png?v=19" : "assets/isaac-portrait-hud.png?v=19");
+const AVATAR = img("assets/isaac-portrait.png?v=19");
+const AVATAR32 = img("assets/isaac-portrait-32.png?v=19");
 const AV_BG = "#d1e3d3"; // the portrait's mint background, used to pad the frame
 function drawPortrait(c) {
   if (!c) return;
@@ -71,15 +71,40 @@ export const UI = {
     $("#opt-zin").addEventListener("click", () => G.setZoom(1)); $("#opt-zout").addEventListener("click", () => G.setZoom(-1));
     document.addEventListener("pointerdown", (e) => { if (!wm.hidden && !e.target.closest("#world-menu, #world-btn")) UI.toggleWorld(false); });
     syncWorld();
+    $("#quest-win-close")?.addEventListener("click", () => UI.hideQuestWin());
+    $("#quest-contact")?.addEventListener("click", () => { UI.hideQuestWin(); UI.open("contact"); });
+    $("#quest-win")?.addEventListener("pointerdown", (e) => { if (e.target.id === "quest-win") UI.hideQuestWin(); });
     // profile portrait
     drawPortrait($("#portrait")); const redraw = () => { drawPortrait($("#portrait")); const m = $("#mc-portrait"); if (m) drawPortrait(m); }; for (const i of [AV_HD, AV_HUD, AVATAR, AVATAR32]) i.addEventListener("load", redraw);
   },
   isOpen: () => !$("#modal-wrap").hidden,
   toggleWorld(force) { const wm = $("#world-menu"); const show = force ?? wm.hidden; wm.hidden = !show; $("#world-btn").setAttribute("aria-expanded", String(show)); if (show) $("#opt-time").focus(); },
   toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.remove("show"); void t.offsetWidth; t.classList.add("show"); clearTimeout(UI._tt); UI._tt = setTimeout(() => t.classList.remove("show"), 3600); },
+  showQuestWin() {
+    const w = $("#quest-win"); if (!w) return;
+    w.hidden = false;
+    const fx = $("#quest-fx"); const reduce = G.state.reduce || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!fx) return;
+    const g = fx.getContext("2d"); fx.width = innerWidth; fx.height = innerHeight; g.imageSmoothingEnabled = false;
+    if (UI._confetti) cancelAnimationFrame(UI._confetti);
+    if (reduce) { g.clearRect(0, 0, fx.width, fx.height); return; }
+    const cols = ["#ff8200", "#1f3a6e", "#f2c94c", "#e2455a", "#4f9a5c", "#f7f1e1"];
+    const bits = Array.from({ length: 70 }, () => ({ x: Math.random() * fx.width, y: -Math.random() * fx.height, v: 40 + Math.random() * 90, s: 3 + Math.random() * 5, c: cols[Math.floor(Math.random() * cols.length)], r: Math.random() * 4 }));
+    const t0 = performance.now();
+    const step = (now) => {
+      if (w.hidden) { UI._confetti = 0; return; }
+      const dt = Math.min(0.05, (now - (step.t || now)) / 1000); step.t = now;
+      g.clearRect(0, 0, fx.width, fx.height);
+      for (const b of bits) { b.y += b.v * dt; b.x += Math.sin((now / 400) + b.r) * 20 * dt; if (b.y > fx.height) { b.y = -8; b.x = Math.random() * fx.width; } g.fillStyle = b.c; g.fillRect(Math.round(b.x), Math.round(b.y), b.s, b.s); }
+      if (now - t0 < 8000) UI._confetti = requestAnimationFrame(step);
+    };
+    UI._confetti = requestAnimationFrame(step);
+  },
+  hideQuestWin() { const w = $("#quest-win"); if (w) w.hidden = true; if (UI._confetti) cancelAnimationFrame(UI._confetti); },
   close() {
     $("#modal-wrap").hidden = true; $("#modal").className = ""; history = [];
     if (lastFocus && document.contains(lastFocus)) lastFocus.focus(); else document.body.focus();
+    if (G && G.Quest && G.Quest._pendingWin) { G.Quest._pendingWin = false; setTimeout(() => G.Quest.showWin(), 160); }
   },
   open(kind, arg, push = false) {
     UI.toggleWorld(false);
@@ -141,8 +166,8 @@ function onBodyClick(e) {
     const M = UI._npc === "pet" ? PET_TALK : MASCOTS[UI._npc]; const c = M && M.cards[+id]; if (!c) return;
     let ans = c.a, go = c.open ? openBtn(c.open) : "";
     if (ans === "fact") ans = CAMPUS_FACTS[(UI._fact = ((UI._fact ?? -1) + 1) % CAMPUS_FACTS.length)];
-    else if (ans === "pet") { G.petBird(); ans = PET_TALK.short + " fluffs up its crest, leans into your hand and does a happy little hop."; }
-    else if (ans === "next") { const n = nextUnvisited(); ans = n ? PET_TALK.short + " points a wing toward " + n.name + ". You haven't opened that one yet." : "You've opened every landmark. " + PET_TALK.short + " is impressed."; go = n ? `<button class="btn primary" data-act="go" data-id="${n.id}">Take me there ▶</button>` : ""; }
+    else if (ans === "pet") { G.petBird(); ans = PET_TALK.short + " leans into your hand, purrs, and does a happy little hop."; }
+    else if (ans === "next") { const n = nextUnvisited(); const q = G.Quest && G.Quest.next(); let ansQ = n ? PET_TALK.short + " looks toward " + n.name + ". You haven't opened that one yet." : "You've opened every landmark. " + PET_TALK.short + " is impressed."; if (q) ansQ = "Tour: " + q.objective + ". " + ansQ; ans = ansQ; go = n ? `<button class="btn primary" data-act="go" data-id="${n.id}">Take me there ▶</button>` : ""; }
     $("#npc-text").textContent = ans; $("#npc-go").innerHTML = go;
     document.querySelectorAll(".mcard").forEach((x) => x.classList.toggle("on", x === b));
   }
@@ -271,12 +296,12 @@ const VIEWS = {
     return { crumb: "CONTACT", title: "Contact", html: `<p class="eyebrow">Contact</p><h2 class="h1" id="modal-title">Say hello.</h2><p>${esc(PROFILE.lookingFor)}. I'm in ${esc(PROFILE.location)} and I read every email.</p>${contactBlock()}<p class="muted small">${esc(PROFILE.email)} · <a href="${esc(PROFILE.resumePdf)}" target="_blank" rel="noopener">Resume PDF ↗</a> · <a href="recruiter.html">Plain recruiter view</a></p>` };
   },
   help() {
-    const rows = [["Move", "WASD, arrow keys, or the direction pad."], ["Run", "Hold Shift, or toggle Run."], ["Talk", "Walk up to someone with a ! and press E."], ["Places", "Press E near a building, or use the yellow button."], ["Dig Log", "Press P to see every project and job."], ["Map", "Press M. Take the bus between areas."], ["Contact", "Press C."], ["Close", "Press Escape, or select Close."]];
-    return { crumb: "HELP", title: "How to play", html: `<div class="narrow"><h2 class="h1" id="modal-title">How to play.</h2><p>Explore the UTEP campus. Each landmark holds part of Isaac's portfolio. The Sun Metro bus runs between Main Campus and the Sun Bowl side.</p>
+    const rows = [["Move", "WASD, arrow keys, or the direction pad."], ["Run", "Hold Shift, or toggle Run."], ["Talk", "Walk up to someone with a ! and press E."], ["Places", "Press E near a building, or use the yellow button."], ["Tour", "Optional campus tour: talk to the five host mascots. Progress is in the top right. It never blocks the rest of the site."], ["Dig Log", "Press P to see every project and job."], ["Map", "Press M. Take the bus between areas."], ["Contact", "Press C."], ["Close", "Press Escape, or select Close."]];
+    return { crumb: "HELP", title: "How to play", html: `<div class="narrow"><h2 class="h1" id="modal-title">How to play.</h2><p>Explore the UTEP campus. Each landmark holds part of Isaac's portfolio. The Sun Metro bus runs between Main Campus and the Sun Bowl side. An optional campus tour is in the top right.</p>
       <table class="help"><tbody>${rows.map(([a, b]) => `<tr><th scope="row">${a}</th><td>${b}</td></tr>`).join("")}</tbody></table>
       <p class="muted small">World options change the time of day, the weather, sound and zoom.</p>
       <label class="check"><input type="checkbox" id="reduce-cb" ${G.state.reduce ? "checked" : ""}> Reduce animation</label>
-      <p class="fine">${esc(SITE.footer)} Not an official UTEP site. All art is original. <a href="recruiter.html">Skip the game</a>.</p></div>` };
+      <p class="fine">${esc(SITE.footer)} Not an official UTEP site. Visiting mascots are original fan-inspired characters, not official school marks. All art is original. <a href="recruiter.html">Skip the game</a>.</p></div>` };
   },
   npc(o) {
     const M = o.pet ? PET_TALK : o.mascot ? MASCOTS[o.mascot] : null; UI._npc = o.pet ? "pet" : o.mascot || null;

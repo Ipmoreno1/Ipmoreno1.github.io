@@ -1,6 +1,6 @@
 // world.js : the two walkable areas (Main Campus and the Sun Bowl side), built from tiles, buildings and props.
-import * as A from "./art.js?v=16";
-import { BUILDINGS, paintBuilding } from "./buildings.js?v=16";
+import * as A from "./art.js?v=19";
+import { BUILDINGS, paintBuilding } from "./buildings.js?v=19";
 const T = A.T;
 export const TILE = { ground: 0, lawn: 1, path: 2, plaza: 3, road: 4, walk: 5, turf: 6, water: 7, mtn: 8, dg: 9, park: 10 };
 const SOFT = [TILE.ground, TILE.lawn, TILE.path, TILE.dg];
@@ -187,14 +187,15 @@ export function buildMain(art) {
   a.spawn = { x: 52.5 * T, y: 28.4 * T };
   a.npcs = [
     { id: "miner", x: 57 * T, y: 27 * T, home: [57, 27], wander: 2 },
-    { id: "jack", x: 84 * T, y: 21 * T, home: [84, 21], wander: 2 },
-    { id: "lizard", x: 10 * T, y: 21 * T, home: [10, 21], wander: 1 },
-    { id: "s0", route: [[17, 20], [17, 44], [35, 44], [35, 20]] },
-    { id: "s1", route: [[69, 20], [98, 20], [98, 39], [69, 39]] },
-    { id: "s2", x: 29 * T, y: 39 * T, home: [29, 39], wander: 4 },
-    { id: "s3", route: [[4, 10], [100, 10]] },
-    { id: "s7", x: 76 * T, y: 20 * T, home: [79, 20], wander: 2 },
-    { id: "s8", route: [[38, 47], [96, 47], [96, 39], [38, 39]] },
+    { id: "longhorn", x: 88 * T, y: 22 * T, home: [88, 22], wander: 2 },
+    { id: "bear", x: 64 * T, y: 42 * T, home: [64, 42], wander: 2 },
+    { id: "gator", x: 10 * T, y: 21 * T, home: [10, 21], wander: 1 },
+    { id: "aggie", route: [[14, 32], [14, 48], [32, 48], [32, 32]] },
+    { id: "frog", route: [[72, 18], [100, 18], [100, 36], [72, 36]] },
+    { id: "cougar", x: 22 * T, y: 44 * T, home: [22, 44], wander: 3 },
+    { id: "raider", route: [[4, 10], [100, 10]] },
+    { id: "lobo", x: 46 * T, y: 16 * T, home: [46, 16], wander: 2 },
+    { id: "mustang", route: [[40, 48], [92, 48], [92, 40], [40, 40]] },
   ];
   a.sub = "Desert";
   return a;
@@ -249,11 +250,11 @@ export function buildAthletics(art) {
   a.road = [8, 13];
   a.spawn = { x: 32 * T + 8, y: 15 * T + 4 };
   a.npcs = [
-    { id: "coyote", x: 20 * T, y: (28 + Y) * T, home: [20, 28 + Y], wander: 2 },
-    { id: "s4", route: [[32, 28 + Y], [32, 42 + Y], [59, 42 + Y], [59, 28 + Y]] },
-    { id: "s5", x: 66 * T, y: (28 + Y) * T, home: [66, 28 + Y], wander: 3 },
-    { id: "s6", x: 50 * T, y: (37 + Y) * T, home: [50, 37 + Y], wander: 2 },
-    { id: "s9", route: [[2, 28 + Y], [56, 28 + Y]] },
+    { id: "eagle", x: 20 * T, y: (28 + Y) * T, home: [20, 28 + Y], wander: 2 },
+    { id: "owl", route: [[36, 42 + Y], [58, 42 + Y], [58, 30 + Y], [36, 30 + Y]] },
+    { id: "runner", x: 72 * T, y: (32 + Y) * T, home: [72, 32 + Y], wander: 3 },
+    { id: "wildcat", x: 50 * T, y: (38 + Y) * T, home: [50, 38 + Y], wander: 2 },
+    { id: "panther", route: [[6, 44 + Y], [30, 44 + Y], [30, 30 + Y], [6, 30 + Y]] },
   ];
   a.sub = "Foothills";
   return a;
