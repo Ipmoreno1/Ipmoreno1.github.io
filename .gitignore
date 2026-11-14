@@ -1,0 +1,27 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Dependencies and build output (tools/, dungeons/tools/ scripts)
+node_modules/
+dist/
+build/
+.cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Secrets and local config (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local scratch / staging
+upload-*/
+tmp/
