@@ -256,7 +256,7 @@ export function makeCharacter(spec) {
 // (down, left, right, up), 28x46 cells, feet on ISAAC_FOOT. The head stays
 // on the same pixels in every frame; only the arms and legs move.
 export const ISAAC_W = 28, ISAAC_H = 46, ISAAC_FOOT = 44, ISAAC_COLS = 5;
-export const ISAAC_SHEET = "assets/isaac-walk.png?v=36";
+export const ISAAC_SHEET = "assets/isaac-walk.png?v=37";
 
 function sliceIsaacFrame(img, col, row) {
   const [c, g] = mk(ISAAC_W, ISAAC_H);
@@ -296,7 +296,7 @@ export function loadIsaac() {
 // Campus cat: grey with black spots and white paws. 27x25 sheet, 5 cols
 // (walk 0-3 + sit) x 4 rows (down, left, right, up). Feet near y=22.
 export const CAT_W = 27, CAT_H = 25, CAT_FOOT = 22, CAT_COLS = 5;
-export const CAT_SHEET = "assets/cat-walk.png?v=36";
+export const CAT_SHEET = "assets/cat-walk.png?v=37";
 
 function sliceCatFrame(img, col, row) {
   const [c, g] = mk(CAT_W, CAT_H);

@@ -1,10 +1,10 @@
 // main.js : game loop, input, movement, camera, lighting, weather and the bus.
-import * as A from "./art.js?v=36";
-import { buildAreas } from "./world.js?v=36";
-import { LANDMARKS, MASCOTS, VISITORS, QUEST } from "./data.js?v=36";
-import { loadMascots, portraitOf } from "./mascots.js?v=36";
-import { UI } from "./ui.js?v=36";
-import { Sound } from "./audio.js?v=36";
+import * as A from "./art.js?v=37";
+import { buildAreas } from "./world.js?v=37";
+import { LANDMARKS, MASCOTS, VISITORS, QUEST } from "./data.js?v=37";
+import { loadMascots, portraitOf } from "./mascots.js?v=37";
+import { UI } from "./ui.js?v=37";
+import { Sound } from "./audio.js?v=37";
 
 const T = A.T;
 const $ = (s) => document.querySelector(s);
@@ -76,7 +76,7 @@ function enterArea(id, at) {
   area = areas[id]; state.areaId = id;
   const p = at || area.spawn; player.x = p.x; player.y = p.y; player.trail = [];
   pet.x = player.x - 18; pet.y = player.y + 2;
-  npcs = area.npcs.map((n) => { const o = { ...n, sprite: chars[n.id], dir: "down", dist: 0, wait: Math.random() * 2, moving: false, leg: 0 }; if (n.route) { o.x = n.route[0][0] * T + 8; o.y = n.route[0][1] * T + 12; o.leg = 1; } o.tx = o.x; o.ty = o.y; return o; });
+  npcs = area.npcs.map((n) => spawnNPC(n));
   UI.buildSigns(area);
   snapCam = true; updatePlate();
 }
@@ -135,6 +135,8 @@ function updatePlayer(dt) {
     if (d > 0.01) { player.moving = true; player.dist += d; advanceGait(player, d, run); player.trail.push([player.x, player.y]); if (player.trail.length > 90) player.trail.shift(); }
   }
 }
+// the cat trots one pose per 160 ms at Isaac's walking speed (68 px/s), faster only while catching up
+const CAT_POSE_PX = 68 * 0.16;
 function updatePet(dt) {
   // follow a point on the trail about 20px behind the player
   let tx = player.x - 16, ty = player.y + 1; let acc = 0;
@@ -142,35 +144,138 @@ function updatePet(dt) {
   const dx = tx - pet.x, dy = ty - pet.y, d = Math.hypot(dx, dy);
   pet.moving = d > 3;
   if (d > 140) { pet.x = tx; pet.y = ty; }
-  else if (pet.moving) { const sp = Math.min(d, (d > 30 ? 150 : 95) * dt); pet.x += (dx / d) * sp; pet.y += (dy / d) * sp; pet.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"); pet.dist = (pet.dist || 0) + sp; }
-  else { pet.frame = 0; }
+  else if (pet.moving) { const sp = Math.min(d, (d > 30 ? 150 : 95) * dt); pet.x += (dx / d) * sp; pet.y += (dy / d) * sp; pet.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"); pet.dist = (pet.dist || 0) + sp; pet.phase = ((pet.phase || 0) + sp / CAT_POSE_PX) % 4; }
+  else { pet.frame = 0; pet.phase = 0; }
   if (pet.hop > 0) pet.hop -= dt;
+}
+// ---------------------------------------------------------------- mascot navigation
+// Mascots walk tile to tile along a BFS path, so every target they pick is
+// reachable around lamps, signs, trees and benches. Tiles where a tall prop
+// would hide a standing mascot are never used as a stop, and a mascot that
+// makes no progress for a moment re-plans (or steps back onto a free tile).
+const NPC_POSE_MS = 160;
+const tcx = (gx) => gx * T + 8, tcy = (gy) => gy * T + 12;
+const tileX = (x) => Math.floor(x / T), tileY = (y) => Math.floor((y - 3) / T);
+function navHide(a) {
+  if (a._navHide) return a._navHide;
+  const hide = new Uint8Array(a.w * a.h);
+  const tall = a.objs.filter((o) => o.h >= 20 && a.isSolid(Math.floor(o.fx / T), Math.floor((o.fy - 1) / T)));
+  for (let gy = 0; gy < a.h; gy++) for (let gx = 0; gx < a.w; gx++) {
+    if (a.isSolid(gx, gy)) continue;
+    const x = tcx(gx), y = tcy(gy), x0 = x - 11, x1 = x + 11, y0 = y - 40;
+    for (const o of tall) {
+      if (o.sortY <= y) continue;
+      const w = Math.min(x1, o.x + o.w) - Math.max(x0, o.x), h = Math.min(y, o.y + o.h) - Math.max(y0, o.y);
+      if (w > 0 && h > 0 && (w * h) / (22 * 40) >= 0.15) { hide[gy * a.w + gx] = 1; break; }
+    }
+  }
+  return (a._navHide = hide);
+}
+const walkable = (gx, gy) => !area.isSolid(gx, gy);
+const okStop = (gx, gy) => walkable(gx, gy) && !navHide(area)[gy * area.w + gx];
+// breadth-first search over walkable tiles; returns the tile path to the first tile accepted by `goal`
+function navBFS(sx, sy, goal, maxD = 400, self = null) {
+  const busy = new Set(); if (self) for (const o of npcs) if (o !== self) busy.add(tileY(o.y) * area.w + tileX(o.x));
+  const W = area.w, start = sy * W + sx; const prev = new Map([[start, -1]]); const dist = new Map([[start, 0]]);
+  const q = [start]; const hits = [];
+  for (let qi = 0; qi < q.length; qi++) {
+    const c = q[qi], cx = c % W, cy = (c / W) | 0, cd = dist.get(c);
+    if (goal(cx, cy, cd)) hits.push(c);
+    if (cd >= maxD) continue;
+    for (const [ox, oy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = cx + ox, ny = cy + oy, k = ny * W + nx;
+      if (!walkable(nx, ny) || prev.has(k) || busy.has(k)) continue; prev.set(k, c); dist.set(k, cd + 1); q.push(k);
+    }
+  }
+  const pathTo = (c) => { const p = []; for (let k = c; k !== -1; k = prev.get(k)) p.push([k % W, (k / W) | 0]); return p.reverse(); };
+  return { hits, pathTo };
+}
+function nearestStop(x, y) {
+  const gx = tileX(x), gy = tileY(y);
+  for (let r = 0; r < 12; r++) for (let oy = -r; oy <= r; oy++) for (let ox = -r; ox <= r; ox++) {
+    if (Math.max(Math.abs(ox), Math.abs(oy)) !== r) continue;
+    if (okStop(gx + ox, gy + oy)) return [gx + ox, gy + oy];
+  }
+  return [gx, gy];
+}
+function spawnNPC(n) {
+  const o = { ...n, sprite: chars[n.id], dir: "down", dist: 0, phase: 0, wait: Math.random() * 2, moving: false, leg: 0, path: null, stuckT: 0, fails: 0 };
+  // the world lists wanderers at the top edge of their home tile, which puts their feet in the tile above; start on a free tile centre instead
+  const t = n.route ? n.route[0] : n.home; const [gx, gy] = okStop(t[0], t[1]) ? t : nearestStop(tcx(t[0]), tcy(t[1]));
+  o.x = tcx(gx); o.y = tcy(gy); if (n.route) o.leg = 1;
+  return o;
+}
+function npcCur(n) { const gx = tileX(n.x), gy = tileY(n.y); return walkable(gx, gy) ? [gx, gy] : nearestStop(n.x, n.y); }
+function npcPlan(n) {
+  const [sx, sy] = npcCur(n);
+  if (n.route) {
+    for (let k = 0; k < n.route.length; k++) {
+      const p = n.route[n.leg % n.route.length];
+      const { hits, pathTo } = navBFS(sx, sy, (x, y) => x === p[0] && y === p[1], 400, n.avoid ? n : null); n.avoid = false;
+      if (hits.length) { n.path = pathTo(hits[0]); n.stopAt = okStop(p[0], p[1]); return true; }
+      n.leg++; // unreachable waypoint: skip it
+    }
+    return false;
+  }
+  // stops near home; if a home is boxed in by props, widen the search a little
+  const h = n.home; let hits = [], pathTo = null;
+  for (const W of [n.wander, n.wander + 2, n.wander + 4]) {
+    ({ hits, pathTo } = navBFS(sx, sy, (x, y, d) => d > 0 && Math.abs(x - h[0]) <= W && Math.abs(y - h[1]) <= Math.max(1, Math.round(W * 0.6)) && okStop(x, y)
+      && !npcs.some((o) => o !== n && Math.hypot(o.x - tcx(x), o.y - tcy(y)) < 28), W * 4 + 6, n.avoid ? n : null));
+    if (hits.length >= 3) break;
+  }
+  n.avoid = false;
+  if (!hits.length) return false;
+  n.path = pathTo(hits[(Math.random() * hits.length) | 0]); n.stopAt = true; return true;
+}
+function npcArrive(n) {
+  n.path = null; n.moving = false; n.phase = 0; n.fails = 0;
+  if (n.route) { n.leg++; if (n.stopAt && Math.random() < 0.3) n.wait = 1 + Math.random() * 2; }
+  else n.wait = 1.5 + Math.random() * 3.5;
+}
+// a resting mascot that got nudged eases back to the middle of its tile
+function npcSettle(n, dt) {
+  const gx = tileX(n.x), gy = tileY(n.y); if (!walkable(gx, gy)) return;
+  const dx = tcx(gx) - n.x, dy = tcy(gy) - n.y, k = 12 * dt;
+  const mx = Math.sign(dx) * Math.min(Math.abs(dx), k), my = Math.sign(dy) * Math.min(Math.abs(dy), k);
+  if (mx && !blocked(n.x + mx, n.y)) n.x += mx; if (my && !blocked(n.x, n.y + my)) n.y += my;
 }
 function updateNPCs(dt) {
   for (const n of npcs) {
     const pd = Math.hypot(player.x - n.x, player.y - n.y);
     if (pd < 30) { n.moving = false; const dx = player.x - n.x, dy = player.y - n.y; n.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up"; continue; }
-    if (n.wait > 0) { n.wait -= dt; n.moving = false; continue; }
-    const dx = n.tx - n.x, dy = n.ty - n.y, d = Math.hypot(dx, dy);
-    if (d < 2 && n.route) { const p = n.route[n.leg % n.route.length]; n.leg++; n.tx = p[0] * T + 8; n.ty = p[1] * T + 12; if (Math.random() < 0.3) n.wait = 1 + Math.random() * 2; continue; }
-    if (d < 2) {
-      n.wait = 1.5 + Math.random() * 3.5;
-      for (let tries = 0; tries < 8; tries++) {
-        const gx = n.home[0] + Math.round((Math.random() * 2 - 1) * n.wander), gy = n.home[1] + Math.round((Math.random() * 2 - 1) * n.wander * 0.6);
-        const occupied = npcs.some((o) => o !== n && Math.hypot(o.x - (gx * T + 8), o.y - (gy * T + 12)) < 28);
-        if (area.free(gx, gy) && !area.isSolid(gx, gy - 1) && !occupied) { n.tx = gx * T + 8; n.ty = gy * T + 12; break; }
-      }
-      continue;
+    if (n.wait > 0) { n.wait -= dt; n.moving = false; npcSettle(n, dt); continue; }
+    if (!n.path || !n.path.length) { if (!npcPlan(n)) { n.wait = 1; n.moving = false; const [gx, gy] = nearestStop(n.x, n.y); n.path = [[gx, gy]]; n.stopAt = true; continue; } }
+    const [gx, gy] = n.path[0]; const dx = tcx(gx) - n.x, dy = tcy(gy) - n.y;
+    // a standing mascot on the next tile: walk around it instead of shoving
+    if (npcs.some((o) => o !== n && !o.moving && Math.abs(o.x - tcx(gx)) < 12 && Math.abs(o.y - tcy(gy)) < 10)) { n.avoid = true; n.path = null; n.wait = 0.25; n.moving = false; continue; }
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) { n.x = tcx(gx); n.y = tcy(gy); n.path.shift(); if (!n.path.length) npcArrive(n); continue; }
+    const spd = n.route ? 34 : 28, sp = spd * dt;
+    // walk along the main axis and settle any sideways drift (from being nudged) at the same time
+    const main = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
+    const mx = Math.sign(dx) * Math.min(Math.abs(dx), main === "x" ? sp : sp * 0.6), my = Math.sign(dy) * Math.min(Math.abs(dy), main === "y" ? sp : sp * 0.6);
+    const ox = n.x, oy = n.y;
+    if (mx && !blocked(n.x + mx, n.y)) n.x += mx;
+    if (my && !blocked(n.x, n.y + my)) n.y += my;
+    const moved = Math.hypot(n.x - ox, n.y - oy);
+    if (main === "x" ? Math.abs(dx) > 0.5 : Math.abs(dy) > 0.5) n.dir = main === "x" ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up";
+    n.moving = moved > 0.01;
+    if (n.moving) { n.dist += moved; n.phase = ((n.phase || 0) + moved / (spd * NPC_POSE_MS / 1000)) % 4; }
+    // no real progress for a moment (a prop, or another mascot in the way): re-plan around it
+    if (n.ax == null || Math.hypot(n.x - n.ax, n.y - n.ay) > 2) { n.ax = n.x; n.ay = n.y; n.stuckT = 0; }
+    else if ((n.stuckT += dt) > 0.7) {
+      n.stuckT = 0; n.ax = null; n.fails++;
+      if (blocked(n.x, n.y) || n.fails > 3) { const [fx, fy] = nearestStop(n.x, n.y); n.x = tcx(fx); n.y = tcy(fy); n.fails = 0; }
+      n.avoid = true; n.path = null; if (n.route && n.fails > 2) n.leg++;
     }
-    const sp = (n.route ? 34 : 28) * dt; const mx = Math.abs(dx) > 1 ? Math.sign(dx) * Math.min(sp, Math.abs(dx)) : 0; const my = mx ? 0 : Math.sign(dy) * Math.min(sp, Math.abs(dy));
-    n.dir = mx ? (mx > 0 ? "right" : "left") : my > 0 ? "down" : "up";
-    if (!moveEnt(n, mx, my)) { if (n.route) { n.wait = 0.4; if (Math.abs(dx) > 1) { if (!moveEnt(n, 0, Math.sign(dy || 1) * sp)) n.leg++; } else if (!moveEnt(n, Math.sign(dx || 1) * sp, 0)) n.leg++; } else { n.tx = n.x; n.ty = n.y; n.wait = 1; } }
-    n.moving = true; n.dist += sp;
   }
-  // keep mascots from stacking on top of each other
+  // keep mascots from stacking on top of each other, without pushing anyone into a wall or prop
   for (let i = 0; i < npcs.length; i++) for (let j = i + 1; j < npcs.length; j++) {
     const a = npcs[i], b = npcs[j]; const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
-    if (d > 0.01 && d < 22) { const push = (22 - d) * 0.25, ux = dx / d, uy = dy / d; a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push; }
+    if (a.moving || b.moving) continue; // walkers already route around resting mascots; only two resting ones get spread apart
+    if (d > 0.01 && d < 22) { const push = (22 - d) * 0.25, ux = dx / d, uy = dy / d;
+      if (!blocked(a.x - ux * push, a.y - uy * push)) { a.x -= ux * push; a.y -= uy * push; }
+      if (!blocked(b.x + ux * push, b.y + uy * push)) { b.x += ux * push; b.y += uy * push; } }
   }
 }
 
@@ -301,14 +406,13 @@ function advanceGait(e, d, run) {
   }
   e.phase = ph;
 }
-// NPCs keep the distance-based walk they had.
+// Mascots advance one pose per 160 ms of walking (see updateNPCs).
 const WALK_PX = 9;
-const NPC_WALK_PX = 6;
 function walkFrame(e, sprite) {
   if (!e.moving) return (sprite.idle && sprite.idle[e.dir]) || sprite[e.dir][1];
   if (e === player) return sprite[e.dir][Math.floor(e.phase || 0) % 4];
-  const px = (e.home || e.route) ? NPC_WALK_PX : WALK_PX;
-  return sprite[e.dir][Math.floor(e.dist / px) % 4];
+  if (e.home || e.route) return sprite[e.dir][Math.floor(e.phase || 0) % 4];
+  return sprite[e.dir][Math.floor(e.dist / WALK_PX) % 4];
 }
 function drawChar(e, sprite, extraY = 0) {
   const fr = walkFrame(e, sprite); const foot = sprite.foot ?? 34;
@@ -338,7 +442,7 @@ function render(dt) {
   for (const d of all) {
     if (d.kind === "player") { drawChar(player, chars.isaac); }
     else if (d.kind === "npc") { drawChar(d.e, d.e.sprite); }
-    else if (d.kind === "pet") { const set = cat[pet.dir] || cat.right; const im = pet.moving ? set.walk[Math.floor((pet.dist || 0) / 5) % 4] : set.idle[0]; const hop = pet.hop > 0 ? -Math.round(Math.sin(pet.hop * 10) * 3 + 3) : 0; const fw = im.width, fh = cat.foot ?? (im.height - 2); vg.drawImage(im, Math.round(pet.x - (fw >> 1) - ix), Math.round(pet.y - fh - iy + hop)); }
+    else if (d.kind === "pet") { const set = cat[pet.dir] || cat.right; const im = pet.moving ? set.walk[Math.floor(pet.phase || 0) % 4] : set.idle[0]; const hop = pet.hop > 0 ? -Math.round(Math.sin(pet.hop * 10) * 3 + 3) : 0; const fw = im.width, fh = cat.foot ?? (im.height - 2); vg.drawImage(im, Math.round(pet.x - (fw >> 1) - ix), Math.round(pet.y - fh - iy + hop)); }
     else { const o = d; const fi = o.frames.length > 1 && !state.reduce ? Math.floor(t * (o.rate || 1) + o.phase) % o.frames.length : 0; vg.drawImage(o.frames[fi], o.x - ix, o.y - iy); }
   }
   // weather tint (under the light pass)
