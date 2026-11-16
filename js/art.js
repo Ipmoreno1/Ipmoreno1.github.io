@@ -251,11 +251,12 @@ export function makeCharacter(spec) {
   return out;
 }
 
-// Isaac's walk sprite comes from assets/isaac-walk.png (a keyed, quantized
-// sheet of his bust-matched chibi). 4 directions x 4 frames, feet at ISAAC_FOOT.
-// Idle should use frame 1 (the standing pose); frames are step, stand, step, stand.
-export const ISAAC_W = 26, ISAAC_H = 46, ISAAC_FOOT = 44, ISAAC_COLS = 5;
-export const ISAAC_SHEET = "assets/isaac-walk.png?v=27";
+// Isaac's walk sprite comes from assets/isaac-walk.png, an original sheet of his
+// bust-matched chibi. 5 columns [step A, stand, step B, stand, idle] x 4 rows
+// (down, left, right, up), 28x46 cells, feet on ISAAC_FOOT. The head stays
+// on the same pixels in every frame; only the arms and legs move.
+export const ISAAC_W = 28, ISAAC_H = 46, ISAAC_FOOT = 44, ISAAC_COLS = 5;
+export const ISAAC_SHEET = "assets/isaac-walk.png?v=36";
 
 function sliceIsaacFrame(img, col, row) {
   const [c, g] = mk(ISAAC_W, ISAAC_H);
@@ -277,7 +278,7 @@ export function makeIsaacFromImage(img) {
   for (let y = 0; y < 32; y += 2) rect(pg, 0, y, 32, 1, shade(bg, -0.04));
   pg.imageSmoothingEnabled = false;
   // Head crop of the front standing (idle) frame
-  pg.drawImage(out.idle.down, 2, 1, 22, 22, 0, 0, 32, 32);
+  pg.drawImage(out.idle.down, 3, 1, 22, 22, 0, 0, 32, 32);
   out.portrait = pc;
   return out;
 }
@@ -295,7 +296,7 @@ export function loadIsaac() {
 // Campus cat: grey with black spots and white paws. 27x25 sheet, 5 cols
 // (walk 0-3 + sit) x 4 rows (down, left, right, up). Feet near y=22.
 export const CAT_W = 27, CAT_H = 25, CAT_FOOT = 22, CAT_COLS = 5;
-export const CAT_SHEET = "assets/cat-walk.png?v=27";
+export const CAT_SHEET = "assets/cat-walk.png?v=36";
 
 function sliceCatFrame(img, col, row) {
   const [c, g] = mk(CAT_W, CAT_H);

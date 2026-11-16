@@ -1,10 +1,10 @@
 // main.js : game loop, input, movement, camera, lighting, weather and the bus.
-import * as A from "./art.js?v=27";
-import { buildAreas } from "./world.js?v=27";
-import { LANDMARKS, MASCOTS, VISITORS, QUEST } from "./data.js?v=27";
-import { loadMascots, portraitOf } from "./mascots.js?v=27";
-import { UI } from "./ui.js?v=27";
-import { Sound } from "./audio.js?v=27";
+import * as A from "./art.js?v=36";
+import { buildAreas } from "./world.js?v=36";
+import { LANDMARKS, MASCOTS, VISITORS, QUEST } from "./data.js?v=36";
+import { loadMascots, portraitOf } from "./mascots.js?v=36";
+import { UI } from "./ui.js?v=36";
+import { Sound } from "./audio.js?v=36";
 
 const T = A.T;
 const $ = (s) => document.querySelector(s);
@@ -68,7 +68,7 @@ const tintGlow = (col) => { const [c, g] = A.mk(64, 64); const gr = g.createRadi
 const warmGlow = tintGlow("rgba(255,184,80,A)"), coolGlow = tintGlow("rgba(220,235,255,A)"), mmGlow = tintGlow("rgba(120,160,255,A)");
 
 // ---------------------------------------------------------------- entities
-const player = { x: 0, y: 0, dir: "down", dist: 0, moving: false, sprite: null, trail: [] };
+const player = { x: 0, y: 0, dir: "down", dist: 0, phase: 0, moving: false, sprite: null, trail: [] };
 const pet = { x: 0, y: 0, dir: "right", frame: 0, dist: 0, moving: false, hop: 0 };
 let npcs = [];
 let area = areas.main;
@@ -125,13 +125,14 @@ function updatePlayer(dt) {
   if (!dx && !dy) { dx = touch.x; dy = touch.y; }
   const run = keys.has("shift") || runToggle; const sp = (run ? 118 : 68) * dt;
   player.moving = false;
+  if (!dx && !dy) player.phase = 0;
   if (dx || dy) {
     const l = Math.hypot(dx, dy); dx /= l; dy /= l;
     player.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up";
     const ox = player.x, oy = player.y;
     moveEnt(player, dx * sp, dy * sp);
     const d = Math.hypot(player.x - ox, player.y - oy);
-    if (d > 0.01) { player.moving = true; player.dist += d; player.trail.push([player.x, player.y]); if (player.trail.length > 90) player.trail.shift(); }
+    if (d > 0.01) { player.moving = true; player.dist += d; advanceGait(player, d, run); player.trail.push([player.x, player.y]); if (player.trail.length > 90) player.trail.shift(); }
   }
 }
 function updatePet(dt) {
@@ -283,11 +284,29 @@ function updateCam(dt) {
 }
 const rain = [], dust = [];
 let flash = 0, nextFlash = 6;
-// Distance-based walk: ~132ms/frame at walk speed (68 px/s / 9), faster when running.
+// Player gait: four poses per direction, [step, pass, step, pass]. The pose
+// advances with distance walked (not a clock), so bumping into a wall never
+// animates in place. Walking holds every pose 160 ms; running holds the two
+// step poses longer than the quick passing poses.
+const GAIT_WALK = { speed: 68, ms: [160, 160, 160, 160] };
+const GAIT_RUN = { speed: 118, ms: [100, 60, 100, 60] };
+function advanceGait(e, d, run) {
+  const g = run ? GAIT_RUN : GAIT_WALK;
+  let ph = e.phase || 0, left = d;
+  while (left > 1e-6) {
+    const i = Math.floor(ph) % 4, len = g.speed * g.ms[i] / 1000;
+    const take = Math.min(left, (i + 1 - ph) * len);
+    ph += take / len; left -= take;
+    if (ph >= 4 - 1e-9) ph = 0;
+  }
+  e.phase = ph;
+}
+// NPCs keep the distance-based walk they had.
 const WALK_PX = 9;
 const NPC_WALK_PX = 6;
 function walkFrame(e, sprite) {
   if (!e.moving) return (sprite.idle && sprite.idle[e.dir]) || sprite[e.dir][1];
+  if (e === player) return sprite[e.dir][Math.floor(e.phase || 0) % 4];
   const px = (e.home || e.route) ? NPC_WALK_PX : WALK_PX;
   return sprite[e.dir][Math.floor(e.dist / px) % 4];
 }
